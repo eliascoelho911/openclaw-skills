@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Eu tenho um grupo no whatsapp com a minha esposa onde enviamos ao decorrer dos dias as compras que estamos dividindo entre nós dois. O problema é que a contabilidade no final do mês é ainda manual e eu gostaria de automatizar isso. Eu preciso de uma API na qual possamos registrar cada uma das nossas transações, estornos e etc. Ao final de cada mês, quero gerar um relatório contendo um resumo dos gastos mensal e quem deve transferir quanto ao outro."
 
+## Clarifications
+
+### Session 2026-02-11
+
+- Q: Qual abordagem de autenticação para a v1 da API? → A: Sem autenticação na v1; cada registro deve informar o participante responsável.
+- Q: Enquanto o mês está aberto, movimentações podem ser editadas/excluídas? → A: Não; correções devem ser feitas via estorno e novo lançamento.
+- Q: Qual estratégia de arredondamento deve ser usada nos cálculos? → A: Arredondar cada movimentação para 2 casas antes de acumular os saldos.
+- Q: Como tratar duplicidade com mesmo identificador externo? → A: Retornar erro de duplicidade para mesmo identificador externo e participante no mesmo mês.
+- Q: Qual fuso horário define o mês de competência? → A: America/Sao_Paulo para todos os cálculos mensais.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Registrar compras e estornos (Priority: P1)
@@ -76,13 +86,18 @@ Como participante do casal, quero fechar o mês e gerar um relatório final para
 - **FR-008**: O sistema MUST tornar o mês imutável após o fechamento, impedindo inclusão, alteração ou exclusão de movimentações daquele período.
 - **FR-009**: O sistema MUST retornar sempre o mesmo relatório final quando o fechamento do mesmo mês for solicitado novamente.
 - **FR-010**: O sistema MUST manter histórico consultável de relatórios mensais fechados por, no mínimo, 24 meses.
-- **FR-011**: O sistema MUST registrar trilha de auditoria mínima para cada movimentação e fechamento (quem realizou e quando).
+- **FR-011**: O sistema MUST registrar trilha de auditoria mínima para cada movimentação e fechamento (identificador do participante informado na requisição e timestamp).
 - **FR-012**: O sistema MUST exibir valores monetários em Real brasileiro com duas casas decimais em todos os resumos e relatórios.
+- **FR-013**: A API v1 MUST operar sem autenticação/autorização; ao registrar movimentações e solicitar fechamento, a requisição MUST informar explicitamente o identificador do participante responsável.
+- **FR-014**: O sistema MUST adotar histórico append-only para movimentações: não permitir edição nem exclusão, inclusive com mês aberto; correções MUST ocorrer por estorno vinculado e novo lançamento, quando necessário.
+- **FR-015**: O sistema MUST arredondar cada movimentação para duas casas decimais (BRL) no momento do registro e utilizar esses valores arredondados para todos os cálculos acumulados de resumo e fechamento.
+- **FR-016**: O sistema MUST rejeitar como duplicada qualquer nova movimentação que repita o mesmo identificador externo para o mesmo participante dentro do mesmo mês de competência.
+- **FR-017**: O sistema MUST determinar o mês de competência pela data/hora da movimentação no fuso fixo America/Sao_Paulo.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Participante**: Pessoa que compõe a divisão de despesas do casal; atributos principais incluem identificador, nome e status ativo.
-- **Movimentação Financeira**: Registro de compra ou estorno; inclui identificador, tipo, valor, data da transação, descrição, participante pagador e referência opcional para deduplicação.
+- **Movimentação Financeira**: Registro de compra ou estorno; inclui identificador, tipo, valor, data da transação, descrição, participante pagador e referência opcional para deduplicação, com unicidade por (mês de competência, participante, identificador externo) quando informada.
 - **Vínculo de Estorno**: Relação entre estorno e compra original para controle de limite de estorno acumulado.
 - **Resumo Mensal**: Visão consolidada de um mês em andamento com totais bruto, estornos, líquido, contribuição individual e saldo entre participantes.
 - **Relatório de Fechamento Mensal**: Resultado final de um mês fechado com registro congelado dos cálculos, indicação de devedor/credor e valor de transferência.
@@ -91,7 +106,8 @@ Como participante do casal, quero fechar o mês e gerar um relatório final para
 
 - **ASSUMPTION-001**: A divisão de despesas entre os dois participantes é sempre 50/50 para este escopo inicial.
 - **ASSUMPTION-002**: A moeda operacional é Real brasileiro (BRL).
-- **ASSUMPTION-003**: O mês de competência é definido pela data da movimentação no fuso horário oficial configurado para o casal.
+- **ASSUMPTION-003**: O mês de competência é definido pela data da movimentação no fuso fixo America/Sao_Paulo.
+- **ASSUMPTION-004**: A v1 é utilizada em contexto de confiança entre os dois participantes, aceitando identidade declarada na requisição.
 - **DEPENDENCY-001**: Os dois participantes precisam estar previamente cadastrados e ativos para registrar movimentações e fechar mês.
 - **DEPENDENCY-002**: Para evitar duplicidade, integrações externas devem enviar identificador de referência quando disponível.
 
