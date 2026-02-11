@@ -101,17 +101,17 @@
 
 ### Tests for User Story 3
 
-- [ ] T031 [P] [US3] Criar teste de contrato do GET `/v1/monthly-closures/{closure_id}` em `apps/compras_divididas/tests/contract/test_get_monthly_closure_by_id.py`
-- [ ] T032 [P] [US3] Criar teste de contrato do GET `/v1/monthly-closures/{year}/{month}/latest` em `apps/compras_divididas/tests/contract/test_get_latest_monthly_closure.py`
-- [ ] T033 [P] [US3] Criar teste de integracao do relatorio detalhado com rejeitados/deduplicados em `apps/compras_divididas/tests/integration/test_detailed_report.py`
+- [x] T031 [P] [US3] Criar teste de contrato do GET `/v1/monthly-closures/{closure_id}` em `apps/compras_divididas/tests/contract/test_get_monthly_closure_by_id.py`
+- [x] T032 [P] [US3] Criar teste de contrato do GET `/v1/monthly-closures/{year}/{month}/latest` em `apps/compras_divididas/tests/contract/test_get_latest_monthly_closure.py`
+- [x] T033 [P] [US3] Criar teste de integracao do relatorio detalhado com rejeitados/deduplicados em `apps/compras_divididas/tests/integration/test_detailed_report.py`
 
 ### Implementation for User Story 3
 
-- [ ] T034 [P] [US3] Criar modelo ORM de itens do fechamento em `apps/compras_divididas/src/compras_divididas/infrastructure/db/models/closure_line_item.py`
-- [ ] T035 [US3] Implementar montador de relatorio detalhado em `apps/compras_divididas/src/compras_divididas/reporting/monthly_closure_report.py`
-- [ ] T036 [US3] Implementar casos de uso de consulta por id e ultimo fechamento do periodo em `apps/compras_divididas/src/compras_divididas/application/use_cases/get_monthly_closure.py`
-- [ ] T037 [US3] Implementar handlers GET de consulta de fechamento em `apps/compras_divididas/src/compras_divididas/api/monthly_closures.py`
-- [ ] T038 [US3] Ajustar resposta da Skill com resumo executivo seguido de detalhamento em `apps/compras_divididas/src/compras_divididas/skill.py`
+- [x] T034 [P] [US3] Criar modelo ORM de itens do fechamento em `apps/compras_divididas/src/compras_divididas/infrastructure/db/models/closure_line_item.py`
+- [x] T035 [US3] Implementar montador de relatorio detalhado em `apps/compras_divididas/src/compras_divididas/reporting/monthly_closure_report.py`
+- [x] T036 [US3] Implementar casos de uso de consulta por id e ultimo fechamento do periodo em `apps/compras_divididas/src/compras_divididas/application/use_cases/get_monthly_closure.py`
+- [x] T037 [US3] Implementar handlers GET de consulta de fechamento em `apps/compras_divididas/src/compras_divididas/api/monthly_closures.py`
+- [x] T038 [US3] Ajustar resposta da Skill com resumo executivo seguido de detalhamento em `apps/compras_divididas/src/compras_divididas/skill.py`
 
 **Checkpoint**: US3 funcional com trilha auditavel e consultas historicas.
 
