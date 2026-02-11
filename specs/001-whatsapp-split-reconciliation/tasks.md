@@ -121,11 +121,11 @@
 
 **Purpose**: Fechamentos de qualidade, performance e documentacao transversal.
 
-- [ ] T039 [P] Criar dataset golden deterministico para regressao em `apps/compras_divididas/tests/fixtures/golden/monthly_closure_dataset.json`
-- [ ] T040 Implementar benchmarks D100/D500/D2000/reprocess_50 em `apps/compras_divididas/tests/performance/test_reconciliation_benchmarks.py`
-- [ ] T041 [P] Criar regressao ponta-a-ponta de paridade CLI vs Skill em `tests/test_compras_divididas_integration.py`
-- [ ] T042 Atualizar fluxo executavel e criterios de validacao em `specs/001-whatsapp-split-reconciliation/quickstart.md`
-- [ ] T043 [P] Documentar arquitetura e operacao do app em `apps/compras_divididas/README.md`
+- [x] T039 [P] Criar dataset golden deterministico para regressao em `apps/compras_divididas/tests/fixtures/golden/monthly_closure_dataset.json`
+- [x] T040 Implementar benchmarks D100/D500/D2000/reprocess_50 em `apps/compras_divididas/tests/performance/test_reconciliation_benchmarks.py`
+- [x] T041 [P] Criar regressao ponta-a-ponta de paridade CLI vs Skill em `tests/test_compras_divididas_integration.py`
+- [x] T042 Atualizar fluxo executavel e criterios de validacao em `specs/001-whatsapp-split-reconciliation/quickstart.md`
+- [x] T043 [P] Documentar arquitetura e operacao do app em `apps/compras_divididas/README.md`
 
 ---
 

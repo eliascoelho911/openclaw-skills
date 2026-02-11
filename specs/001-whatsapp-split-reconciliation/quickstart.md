@@ -30,7 +30,7 @@ export OPENAI_MODEL="gpt-4.1-mini"
 uv run alembic upgrade head
 ```
 
-## 4) Executar fechamento mensal via CLI binario
+## 4) Executar fechamento mensal via CLI
 
 Entrada de exemplo (`examples/feb-2026.json`):
 
@@ -61,7 +61,7 @@ Entrada de exemplo (`examples/feb-2026.json`):
 }
 ```
 
-Comando alvo:
+Comando:
 
 ```bash
 uv run python -m compras_divididas.cli close-month --input examples/feb-2026.json
@@ -79,13 +79,13 @@ Validos: 2 | Invalidos: 0 | Ignorados: 0 | Deduplicados: 0
 
 ## 5) Executar via Skill OpenClaw
 
-Comando alvo da Skill:
+Comando da Skill:
 
 ```text
-/compras-divididas fechar --periodo 2026-02 --arquivo examples/feb-2026.json
+fechar {"period":{"year":2026,"month":2},"participants":[{"external_id":"elias","display_name":"Elias"},{"external_id":"esposa","display_name":"Esposa"}],"messages":[{"message_id":"m1","author_external_id":"elias","author_display_name":"Elias","content":"Mercado R$20","sent_at":"2026-02-05T19:10:00-03:00"}]}
 ```
 
-A Skill deve retornar o mesmo resumo executivo e o detalhamento completo do fechamento.
+A Skill deve retornar o mesmo resumo executivo da CLI e incluir detalhamento completo.
 
 ## 6) Validar qualidade
 
@@ -96,19 +96,30 @@ uv run mypy .
 uv run pytest
 ```
 
-## 7) Validar performance (PR-001..PR-004)
+## 7) Validar regressao ponta-a-ponta
 
 ```bash
-uv run pytest apps/compras_divididas/tests/performance -k "d100 or d500 or d2000 or reprocess_50"
+uv run pytest tests/test_compras_divididas_integration.py
+```
+
+Criterio de aprovacao:
+
+- O resumo executivo da CLI deve ter paridade com o resumo da Skill para o dataset golden.
+
+## 8) Validar performance (PR-001..PR-004)
+
+```bash
+uv run pytest apps/compras_divididas/tests/performance/test_reconciliation_benchmarks.py
 ```
 
 Criterios de aprovacao:
 
+- D100: <= 5s (p95)
 - D500: <= 10s (p95)
 - D2000: <= 30s (p95)
 - Reprocessamento de 50 alteracoes: <= 5s (p95)
 
-## 8) Gerar binario local
+## 9) Gerar binario local
 
 ```bash
 uv run pyinstaller apps/compras_divididas/src/compras_divididas/cli.py --onefile --name compras-divididas
