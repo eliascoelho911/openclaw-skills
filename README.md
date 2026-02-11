@@ -15,9 +15,9 @@ Template de projeto Python com arquitetura multimódulo usando UV workspace, MyP
 │       └── src/shared/
 │
 ├── apps/                       # Aplicações
-│   └── example/                # App de exemplo
+│   └── compras_divididas/      # App principal
 │       ├── Dockerfile          # Multi-stage build
-│       └── src/example/
+│       └── src/compras_divididas/
 │
 └── tests/                      # Testes de integração
 ```
@@ -64,17 +64,17 @@ uv run ruff format .                # Formatar código
 uv run mypy .
 
 # Rodar uma app
-uv run python -m example.main
+uv run python -m compras_divididas.cli healthcheck
 ```
 
 ### Docker
 
 ```bash
 # Build da imagem
-docker build -f apps/example/Dockerfile -t example:latest .
+docker build -f apps/compras_divididas/Dockerfile -t compras-divididas:latest .
 
 # Rodar container
-docker run --rm example:latest
+docker run --rm compras-divididas:latest
 
 # Dev environment com PostgreSQL
 docker-compose up
@@ -161,7 +161,7 @@ myapp = { workspace = true }
 Atualizar `mypy.ini`:
 
 ```ini
-mypy_path = packages/common/src:packages/newmodule/src:apps/example/src:apps/myapp/src
+mypy_path = packages/common/src:packages/newmodule/src:apps/compras_divididas/src:apps/myapp/src
 ```
 
 Rodar `uv sync` para instalar.
@@ -216,8 +216,8 @@ Benefícios:
 
 4. **Testar no Docker**
    ```bash
-   docker build -f apps/example/Dockerfile -t example:test .
-   docker run --rm example:test
+   docker build -f apps/compras_divididas/Dockerfile -t compras-divididas:test .
+   docker run --rm compras-divididas:test
    ```
 
 ## Comandos de Manutenção

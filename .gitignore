@@ -62,3 +62,5 @@ dmypy.json
 
 # Specify
 .specify/
+
+.logs/

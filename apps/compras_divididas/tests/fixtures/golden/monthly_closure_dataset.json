@@ -1,0 +1,98 @@
+{
+  "dataset_id": "golden-2026-02-mixed-v1",
+  "description": "Deterministic mixed batch for regression and parity checks.",
+  "request": {
+    "period": {
+      "year": 2026,
+      "month": 2
+    },
+    "participants": [
+      {
+        "external_id": "elias",
+        "display_name": "Elias"
+      },
+      {
+        "external_id": "esposa",
+        "display_name": "Esposa"
+      }
+    ],
+    "messages": [
+      {
+        "message_id": "m1",
+        "author_external_id": "elias",
+        "author_display_name": "Elias",
+        "content": "Mercado R$20",
+        "sent_at": "2026-02-05T19:10:00-03:00"
+      },
+      {
+        "message_id": "m2",
+        "author_external_id": "elias",
+        "author_display_name": "Elias",
+        "content": "Mercado R$20",
+        "sent_at": "2026-02-05T19:12:00-03:00"
+      },
+      {
+        "message_id": "m3",
+        "author_external_id": "esposa",
+        "author_display_name": "Esposa",
+        "content": "Farmacia sem valor",
+        "sent_at": "2026-02-06T12:35:00-03:00"
+      },
+      {
+        "message_id": "m4",
+        "author_external_id": "esposa",
+        "author_display_name": "Esposa",
+        "content": "bom dia amor",
+        "sent_at": "2026-02-06T12:40:00-03:00"
+      },
+      {
+        "message_id": "m5",
+        "author_external_id": "elias",
+        "author_display_name": "Elias",
+        "content": "Mercado -10",
+        "sent_at": "2026-02-07T11:00:00-03:00"
+      },
+      {
+        "message_id": "m6",
+        "author_external_id": "esposa",
+        "author_display_name": "Esposa",
+        "content": "extorno farmacia -5",
+        "sent_at": "2026-02-07T11:03:00-03:00"
+      }
+    ],
+    "source": "manual_copy",
+    "reprocess_mode": "new_version"
+  },
+  "expected": {
+    "transfer_instruction": {
+      "payer_external_id": "esposa",
+      "receiver_external_id": "elias",
+      "amount_cents": 2500,
+      "amount_brl": "R$ 25,00"
+    },
+    "counts": {
+      "valid": 2,
+      "invalid": 2,
+      "ignored": 1,
+      "deduplicated": 1
+    },
+    "valid_message_ids": [
+      "m1",
+      "m6"
+    ],
+    "rejected_reason_by_message": {
+      "m3": "missing_amount",
+      "m4": "non_financial",
+      "m5": "negative_without_refund_keyword"
+    },
+    "deduplicated_message_ids": [
+      "m2"
+    ]
+  },
+  "performance_targets_seconds": {
+    "d100": 5.0,
+    "d500": 10.0,
+    "d2000": 30.0,
+    "reprocess_50": 5.0
+  }
+}
