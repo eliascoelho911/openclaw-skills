@@ -52,17 +52,17 @@
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Criar teste de contrato do POST `/v1/monthly-closures` em `apps/compras_divididas/tests/contract/test_create_monthly_closure.py`
-- [ ] T015 [P] [US1] Criar teste de integracao do fechamento mensal feliz em `apps/compras_divididas/tests/integration/test_close_month_happy_path.py`
-- [ ] T016 [P] [US1] Criar testes unitarios de calculo bilateral de saldo em `apps/compras_divididas/tests/unit/test_settlement_service.py`
+- [x] T014 [P] [US1] Criar teste de contrato do POST `/v1/monthly-closures` em `apps/compras_divididas/tests/contract/test_create_monthly_closure.py`
+- [x] T015 [P] [US1] Criar teste de integracao do fechamento mensal feliz em `apps/compras_divididas/tests/integration/test_close_month_happy_path.py`
+- [x] T016 [P] [US1] Criar testes unitarios de calculo bilateral de saldo em `apps/compras_divididas/tests/unit/test_settlement_service.py`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Criar modelo ORM de fechamento mensal em `apps/compras_divididas/src/compras_divididas/infrastructure/db/models/monthly_closure.py`
-- [ ] T018 [P] [US1] Implementar repositorio de fechamento mensal em `apps/compras_divididas/src/compras_divididas/infrastructure/repositories/monthly_closure_repository.py`
-- [ ] T019 [US1] Implementar caso de uso de fechamento do mes em `apps/compras_divididas/src/compras_divididas/application/use_cases/close_month.py`
-- [ ] T020 [US1] Expor comando `close-month` no CLI em `apps/compras_divididas/src/compras_divididas/cli.py`
-- [ ] T021 [US1] Implementar handler POST de fechamento mensal em `apps/compras_divididas/src/compras_divididas/api/monthly_closures.py`
+- [x] T017 [P] [US1] Criar modelo ORM de fechamento mensal em `apps/compras_divididas/src/compras_divididas/infrastructure/db/models/monthly_closure.py`
+- [x] T018 [P] [US1] Implementar repositorio de fechamento mensal em `apps/compras_divididas/src/compras_divididas/infrastructure/repositories/monthly_closure_repository.py`
+- [x] T019 [US1] Implementar caso de uso de fechamento do mes em `apps/compras_divididas/src/compras_divididas/application/use_cases/close_month.py`
+- [x] T020 [US1] Expor comando `close-month` no CLI em `apps/compras_divididas/src/compras_divididas/cli.py`
+- [x] T021 [US1] Implementar handler POST de fechamento mensal em `apps/compras_divididas/src/compras_divididas/api/monthly_closures.py`
 
 **Checkpoint**: US1 funcional e validavel isoladamente (MVP).
 
