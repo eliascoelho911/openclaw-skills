@@ -84,18 +84,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] Criar contract test de `GET /v1/movements` com filtros obrigatorios/opcionais em `apps/compras_divididas/tests/contract/test_list_movements.py`
-- [ ] T025 [P] [US2] Criar contract test de `GET /v1/months/{year}/{month}/summary` em `apps/compras_divididas/tests/contract/test_get_monthly_summary.py`
-- [ ] T026 [P] [US2] Criar integration test de resumo mensal com mes vazio e mes populado em `apps/compras_divididas/tests/integration/test_monthly_summary.py`
+- [x] T024 [P] [US2] Criar contract test de `GET /v1/movements` com filtros obrigatorios/opcionais em `apps/compras_divididas/tests/contract/test_list_movements.py`
+- [x] T025 [P] [US2] Criar contract test de `GET /v1/months/{year}/{month}/summary` em `apps/compras_divididas/tests/contract/test_get_monthly_summary.py`
+- [x] T026 [P] [US2] Criar integration test de resumo mensal com mes vazio e mes populado em `apps/compras_divididas/tests/integration/test_monthly_summary.py`
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Criar schemas de resposta para listagem paginada em `apps/compras_divididas/src/compras_divididas/api/schemas/movement_list.py`
-- [ ] T028 [P] [US2] Criar schemas de resumo mensal e saldo por participante em `apps/compras_divididas/src/compras_divididas/api/schemas/monthly_summary.py`
-- [ ] T029 [US2] Implementar consulta de movimentos com filtros (`year`,`month`,`type`,`description`,`amount`,`participant_id`,`external_id`) em `apps/compras_divididas/src/compras_divididas/repositories/movement_query_repository.py`
-- [ ] T030 [US2] Implementar agregacao de resumo mensal parcial e calculo de saldo 50/50 em `apps/compras_divididas/src/compras_divididas/services/monthly_summary_service.py`
-- [ ] T031 [US2] Implementar endpoint `GET /v1/movements` em `apps/compras_divididas/src/compras_divididas/api/routes/movements.py`
-- [ ] T032 [US2] Implementar endpoint `GET /v1/months/{year}/{month}/summary` em `apps/compras_divididas/src/compras_divididas/api/routes/monthly_reports.py`
+- [x] T027 [P] [US2] Criar schemas de resposta para listagem paginada em `apps/compras_divididas/src/compras_divididas/api/schemas/movement_list.py`
+- [x] T028 [P] [US2] Criar schemas de resumo mensal e saldo por participante em `apps/compras_divididas/src/compras_divididas/api/schemas/monthly_summary.py`
+- [x] T029 [US2] Implementar consulta de movimentos com filtros (`year`,`month`,`type`,`description`,`amount`,`participant_id`,`external_id`) em `apps/compras_divididas/src/compras_divididas/repositories/movement_query_repository.py`
+- [x] T030 [US2] Implementar agregacao de resumo mensal parcial e calculo de saldo 50/50 em `apps/compras_divididas/src/compras_divididas/services/monthly_summary_service.py`
+- [x] T031 [US2] Implementar endpoint `GET /v1/movements` em `apps/compras_divididas/src/compras_divididas/api/routes/movements.py`
+- [x] T032 [US2] Implementar endpoint `GET /v1/months/{year}/{month}/summary` em `apps/compras_divididas/src/compras_divididas/api/routes/monthly_reports.py`
 
 **Checkpoint**: US2 funcional e validada sem depender da geracao de relatorio final.
 
