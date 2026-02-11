@@ -4,17 +4,23 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from decimal import Decimal, InvalidOperation
 from hashlib import sha256
-from re import search
 from typing import Protocol
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
+from compras_divididas.application.schemas.classification import (
+    ClassifiedEntry,
+    EntryClassification,
+)
+from compras_divididas.application.services.message_classifier import (
+    HybridMessageClassifier,
+)
 from compras_divididas.application.services.settlement_service import (
     calculate_settlement,
 )
+from compras_divididas.domain.services.reconciliation_rules import apply_dedupe
 from compras_divididas.domain.value_objects import MoneyBRL
 
 
@@ -115,8 +121,15 @@ class MonthlyClosureWriter(Protocol):
         """Persist closure report data."""
 
 
+class ExtractedEntryWriter(Protocol):
+    """Persistence port for per-message extracted entries."""
+
+    def save_many(self, run_id: UUID, entries: list[ClassifiedEntry]) -> None:
+        """Persist classification output for each processed message."""
+
+
 class InMemoryMonthlyClosureWriter:
-    """In-memory closure persistence used by MVP adapters."""
+    """In-memory closure persistence used by adapters."""
 
     def __init__(self) -> None:
         self.reports: list[MonthlyClosureReport] = []
@@ -125,20 +138,36 @@ class InMemoryMonthlyClosureWriter:
         self.reports.append(report)
 
 
+class InMemoryExtractedEntryWriter:
+    """In-memory extracted-entry persistence used by adapters."""
+
+    def __init__(self) -> None:
+        self.entries_by_run: dict[UUID, list[ClassifiedEntry]] = {}
+
+    def save_many(self, run_id: UUID, entries: list[ClassifiedEntry]) -> None:
+        self.entries_by_run[run_id] = list(entries)
+
+
 class CloseMonthUseCase:
     """Generate a monthly closure report from raw messages."""
 
     def __init__(
         self,
         closure_writer: MonthlyClosureWriter | None = None,
+        extracted_entry_writer: ExtractedEntryWriter | None = None,
+        message_classifier: HybridMessageClassifier | None = None,
         *,
         now_provider: Callable[[], datetime] | None = None,
     ) -> None:
         self._closure_writer = closure_writer or InMemoryMonthlyClosureWriter()
+        self._extracted_entry_writer = (
+            extracted_entry_writer or InMemoryExtractedEntryWriter()
+        )
+        self._message_classifier = message_classifier or HybridMessageClassifier()
         self._now_provider = now_provider or (lambda: datetime.now(UTC))
 
     def execute(self, request: CloseMonthRequest) -> MonthlyClosureReport:
-        """Process valid monthly entries and return transfer instruction."""
+        """Process monthly entries and return transfer instruction."""
         if len(request.participants) != 2:
             raise ParticipantCountError(
                 "Monthly closure requires exactly two participants"
@@ -149,27 +178,53 @@ class CloseMonthUseCase:
         if participant_a.external_id == participant_b.external_id:
             raise ParticipantCountError("Participants must have distinct external ids")
 
+        run_id = uuid4()
+        now = self._now_provider()
+        participant_external_ids = {
+            participant_a.external_id,
+            participant_b.external_id,
+        }
+        classified_entries = [
+            self._message_classifier.classify_message(
+                message_id=message.message_id,
+                author_external_id=message.author_external_id,
+                author_display_name=message.author_display_name,
+                content=message.content,
+                sent_at=message.sent_at,
+                participant_external_ids=participant_external_ids,
+                period_year=request.period.year,
+                period_month=request.period.month,
+                now=now,
+            )
+            for message in request.messages
+        ]
+        deduped_entries = apply_dedupe(classified_entries)
+        self._extracted_entry_writer.save_many(run_id, deduped_entries)
+
         totals_by_external_id: dict[str, int] = {
             participant_a.external_id: 0,
             participant_b.external_id: 0,
         }
-
         valid_count = 0
         invalid_count = 0
         ignored_count = 0
-        for message in request.messages:
-            amount_cents = _extract_amount_cents(message.content)
-            if message.author_external_id not in totals_by_external_id:
-                ignored_count += 1
+        deduplicated_count = 0
+        for entry in deduped_entries:
+            if entry.classification == EntryClassification.VALID:
+                valid_count += 1
+                if entry.included_in_calculation and entry.amount_cents is not None:
+                    totals_by_external_id[entry.author_external_id] += (
+                        entry.amount_cents
+                    )
                 continue
-            if amount_cents is None:
-                ignored_count += 1
-                continue
-            if amount_cents <= 0:
+            if entry.classification == EntryClassification.INVALID:
                 invalid_count += 1
                 continue
-            totals_by_external_id[message.author_external_id] += amount_cents
-            valid_count += 1
+            if entry.classification == EntryClassification.IGNORED:
+                ignored_count += 1
+                continue
+            if entry.classification == EntryClassification.DEDUPLICATED:
+                deduplicated_count += 1
 
         settlement = calculate_settlement(
             participant_a_external_id=participant_a.external_id,
@@ -178,13 +233,11 @@ class CloseMonthUseCase:
             total_b_cents=totals_by_external_id[participant_b.external_id],
         )
 
-        created_at = self._now_provider()
-        run_id = uuid4()
         closure_id = uuid4()
         report = MonthlyClosureReport(
             closure_id=closure_id,
             run_id=run_id,
-            created_at=created_at,
+            created_at=now,
             period=request.period,
             participants=[
                 ParticipantSummary(
@@ -223,9 +276,50 @@ class CloseMonthUseCase:
                 valid=valid_count,
                 invalid=invalid_count,
                 ignored=ignored_count,
-                deduplicated=0,
+                deduplicated=deduplicated_count,
             ),
-            warnings=[],
+            valid_entries=[
+                {
+                    "entry_id": str(entry.entry_id),
+                    "message_id": entry.message_id,
+                    "date": (entry.sent_at or now).isoformat(),
+                    "author_external_id": entry.author_external_id,
+                    "description": entry.normalized_description or "",
+                    "amount_cents": entry.amount_cents,
+                    "amount_brl": MoneyBRL(cents=entry.amount_cents or 0).to_brl(),
+                    "inferred_month": entry.inferred_month,
+                }
+                for entry in deduped_entries
+                if entry.classification == EntryClassification.VALID
+            ],
+            rejected_entries=[
+                {
+                    "entry_id": str(entry.entry_id),
+                    "message_id": entry.message_id,
+                    "classification": entry.classification.value,
+                    "reason_code": entry.reason_code or "",
+                    "reason_message": entry.reason_message or "",
+                }
+                for entry in deduped_entries
+                if entry.classification
+                in (EntryClassification.INVALID, EntryClassification.IGNORED)
+            ],
+            deduplicated_entries=[
+                {
+                    "entry_id": str(entry.entry_id),
+                    "message_id": entry.message_id,
+                    "duplicated_of_entry_id": str(entry.duplicated_of_entry_id),
+                    "reason_message": entry.reason_message or "",
+                }
+                for entry in deduped_entries
+                if entry.classification == EntryClassification.DEDUPLICATED
+                and entry.duplicated_of_entry_id is not None
+            ],
+            warnings=[
+                "Some messages had no date and were assigned to the current month."
+            ]
+            if any(entry.inferred_month for entry in deduped_entries)
+            else [],
         )
         self._closure_writer.save(report)
         return report
@@ -235,17 +329,3 @@ def hash_input_payload(request: CloseMonthRequest) -> str:
     """Build deterministic hash for idempotency checks."""
     serialized_payload = request.model_dump_json(by_alias=True, exclude_none=False)
     return sha256(serialized_payload.encode("utf-8")).hexdigest()
-
-
-def _extract_amount_cents(content: str) -> int | None:
-    match = search(r"-?\d+(?:[\.,]\d{1,2})?", content)
-    if match is None:
-        return None
-
-    normalized = match.group(0).replace(",", ".")
-    try:
-        decimal_value = Decimal(normalized)
-    except InvalidOperation:
-        return None
-
-    return MoneyBRL.from_decimal(decimal_value).cents

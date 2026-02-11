@@ -76,18 +76,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Criar testes unitarios de extracao e normalizacao monetaria em `apps/compras_divididas/tests/unit/test_message_parser.py`
-- [ ] T023 [P] [US2] Criar testes unitarios de regras de estorno/negativos em `apps/compras_divididas/tests/unit/test_refund_rules.py`
-- [ ] T024 [P] [US2] Criar teste de integracao do pipeline de classificacao em lote misto em `apps/compras_divididas/tests/integration/test_classification_pipeline.py`
+- [x] T022 [P] [US2] Criar testes unitarios de extracao e normalizacao monetaria em `apps/compras_divididas/tests/unit/test_message_parser.py`
+- [x] T023 [P] [US2] Criar testes unitarios de regras de estorno/negativos em `apps/compras_divididas/tests/unit/test_refund_rules.py`
+- [x] T024 [P] [US2] Criar teste de integracao do pipeline de classificacao em lote misto em `apps/compras_divididas/tests/integration/test_classification_pipeline.py`
 
 ### Implementation for User Story 2
 
-- [ ] T025 [P] [US2] Criar modelo ORM de entrada extraida em `apps/compras_divididas/src/compras_divididas/infrastructure/db/models/extracted_entry.py`
-- [ ] T026 [P] [US2] Definir schemas e enums de classificacao em `apps/compras_divididas/src/compras_divididas/application/schemas/classification.py`
-- [ ] T027 [US2] Implementar classificador hibrido (regras + OpenAIClient) em `apps/compras_divididas/src/compras_divididas/application/services/message_classifier.py`
-- [ ] T028 [US2] Implementar regras de dedupe e validacao de estorno em `apps/compras_divididas/src/compras_divididas/domain/services/reconciliation_rules.py`
-- [ ] T029 [US2] Persistir resultados de classificacao por mensagem em `apps/compras_divididas/src/compras_divididas/infrastructure/repositories/extracted_entry_repository.py`
-- [ ] T030 [US2] Integrar pipeline de classificacao ao fechamento mensal em `apps/compras_divididas/src/compras_divididas/application/use_cases/close_month.py`
+- [x] T025 [P] [US2] Criar modelo ORM de entrada extraida em `apps/compras_divididas/src/compras_divididas/infrastructure/db/models/extracted_entry.py`
+- [x] T026 [P] [US2] Definir schemas e enums de classificacao em `apps/compras_divididas/src/compras_divididas/application/schemas/classification.py`
+- [x] T027 [US2] Implementar classificador hibrido (regras + OpenAIClient) em `apps/compras_divididas/src/compras_divididas/application/services/message_classifier.py`
+- [x] T028 [US2] Implementar regras de dedupe e validacao de estorno em `apps/compras_divididas/src/compras_divididas/domain/services/reconciliation_rules.py`
+- [x] T029 [US2] Persistir resultados de classificacao por mensagem em `apps/compras_divididas/src/compras_divididas/infrastructure/repositories/extracted_entry_repository.py`
+- [x] T030 [US2] Integrar pipeline de classificacao ao fechamento mensal em `apps/compras_divididas/src/compras_divididas/application/use_cases/close_month.py`
 
 **Checkpoint**: US2 funcional e validavel isoladamente sobre lote misto.
 
