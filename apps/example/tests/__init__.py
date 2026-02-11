@@ -1,1 +1,0 @@
-# Example app tests package

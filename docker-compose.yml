@@ -10,16 +10,19 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  example:
+  compras_divididas:
     build:
       context: .
-      dockerfile: apps/example/Dockerfile
+      dockerfile: apps/compras_divididas/Dockerfile
     depends_on:
       - db
     environment:
       DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydb
-    ports:
-      - "8000:8000"
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy-key}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      OPENAI_TIMEOUT: ${OPENAI_TIMEOUT:-30}
+      PROMPT_VERSION: ${PROMPT_VERSION:-v1}
+      SCHEMA_VERSION: ${SCHEMA_VERSION:-v1}
 
 volumes:
   pgdata:

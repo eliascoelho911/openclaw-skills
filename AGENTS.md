@@ -7,7 +7,7 @@ It consolidates build/lint/test commands and coding conventions.
 - Workspace manager/runner: `uv`
 - Multi-module layout: `packages/*` and `apps/*`
 - Shared package: `packages/common/src/shared`
-- Example app: `apps/example/src/example`
+- Main app: `apps/compras_divididas/src/compras_divididas`
 - Integration tests: top-level `tests/`
 
 ## Important Files
@@ -15,7 +15,7 @@ It consolidates build/lint/test commands and coding conventions.
 - `ruff.toml` (lint + format)
 - `mypy.ini` (strict typing)
 - `packages/common/pyproject.toml`
-- `apps/example/pyproject.toml`
+- `apps/compras_divididas/pyproject.toml`
 
 ## Setup
 Run from repository root:
@@ -38,13 +38,13 @@ There is no separate compile step for normal Python changes.
 Run one test file:
 ```bash
 uv run pytest packages/common/tests/test_common.py
-uv run pytest apps/example/tests/test_main.py
+uv run pytest apps/compras_divididas/tests/integration/test_close_month_happy_path.py
 uv run pytest tests/test_integration.py
 ```
 Run one specific test function by node ID:
 ```bash
 uv run pytest packages/common/tests/test_common.py::test_greeting
-uv run pytest apps/example/tests/test_main.py::test_main
+uv run pytest apps/compras_divididas/tests/unit/test_settlement_service.py::test_transfer_instruction_balanced
 uv run pytest tests/test_integration.py::test_integration
 ```
 Run by keyword expression:
@@ -54,19 +54,19 @@ uv run pytest -k "greeting and not integration"
 ```
 Verbose single-test debug run:
 ```bash
-uv run pytest -v apps/example/tests/test_main.py::test_main
+uv run pytest -v apps/compras_divididas/tests/contract/test_create_monthly_closure.py::test_create_monthly_closure_returns_id
 ```
 
-## Run the Example App
+## Run the Main App
 ```bash
-uv run python -m example.main
+uv run python -m compras_divididas.cli healthcheck
 ```
-Expected output includes `Hello, World!`.
+Expected output includes `compras-divididas is ready`.
 
 ## Docker Commands
 ```bash
-docker build -f apps/example/Dockerfile -t example:latest .
-docker run --rm example:latest
+docker build -f apps/compras_divididas/Dockerfile -t compras-divididas:latest .
+docker run --rm compras-divididas:latest
 docker-compose up
 docker-compose down
 ```
@@ -74,7 +74,7 @@ docker-compose down
 ## Pytest Configuration Notes
 From root `pyproject.toml`:
 - `testpaths = ["packages", "apps", "tests"]`
-- `pythonpath = ["packages/common/src", "apps/example/src"]`
+- `pythonpath = ["packages/common/src", "apps/compras_divididas/src"]`
 - `addopts = "--tb=short -q --no-header --import-mode=importlib"`
 - `python_files = ["test_*.py", "*_test.py"]`
 - `python_classes = ["Test*"]`
