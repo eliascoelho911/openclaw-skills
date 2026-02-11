@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Eu tenho um grupo no whatsapp com a minha esposa onde enviamos ao decorrer dos dias as compras que estamos dividindo entre nos dois. Ex: Eu -> \"Mercado R$20\". R$20 e o valor ja dividido entre nos dois. Ou seja, eu pago 20 reais e ela tambem. O problema e que a contabilidade no final do mes e ainda manual e eu gostaria de automatizar isso com uma skill no Openclaw"
 
+## Clarifications
+
+### Session 2026-02-11
+
+- Q: Como tratar mensagens potencialmente duplicadas no fechamento? → A: Deduplicar por heuristica em janela curta (mesmo autor+valor+descricao em ate 5 minutos) e marcar no relatorio.
+- Q: Como tratar valores negativos (estornos) nas mensagens? → A: Aceitar como estorno apenas com palavra-chave explicita (`extorno`, `reembolso`, `cancelar`, `deletar`).
+- Q: Qual politica de retencao de historico deve ser adotada? → A: Manter historico completo sem prazo de expurgo.
+- Q: Como tratar mensagens sem data identificavel? → A: Assumir automaticamente o mes atual.
+- Q: Qual regra de acesso deve ser aplicada para processar/consultar fechamentos? → A: Sem regra de acesso nesta fase.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Fechar o mes automaticamente (Priority: P1)
@@ -55,10 +65,12 @@ Como usuario, quero receber um extrato detalhado dos lancamentos considerados pa
 
 ### Edge Cases
 
-- Mensagens duplicadas no lote (ex.: exportacao reenviada parcialmente) devem ser sinalizadas para evitar dupla contagem.
+- Mensagens potencialmente duplicadas (mesmo autor+valor+descricao em ate 5 minutos) devem ser deduplicadas e sinalizadas no relatorio.
 - Valores com formatos diferentes (`R$20`, `R$ 20`, `20`, `20,50`, `20.50`) devem ser tratados de forma consistente.
-- Lancamentos com valor zero, negativo ou nao numerico devem ser rejeitados com motivo claro.
+- Lancamentos com valor zero ou nao numerico devem ser rejeitados com motivo claro.
+- Valores negativos so podem ser aceitos quando houver palavra-chave explicita de estorno (`extorno`, `reembolso`, `cancelar`, `deletar`); fora disso devem ser rejeitados.
 - Mensagens sem autor identificavel nao devem entrar no calculo financeiro.
+- Mensagens sem data identificavel devem ser atribuidas automaticamente ao mes atual, com marcacao explicita no relatorio.
 - Mensagens na virada do mes devem respeitar rigorosamente o periodo selecionado para o fechamento.
 - Entradas de participantes fora do casal nao devem ser consideradas no saldo bilateral.
 
@@ -80,6 +92,12 @@ Como usuario, quero receber um extrato detalhado dos lancamentos considerados pa
 - **FR-012**: O sistema DEVE produzir o mesmo resultado sempre que o mesmo conjunto de dados e o mesmo periodo forem processados novamente.
 - **FR-013**: O sistema DEVE suportar reconciliacao apenas entre dois participantes e sinalizar erro quando houver tentativa de fechamento com mais de dois participantes.
 - **FR-014**: O sistema DEVE apresentar todos os valores monetarios com precisao de centavos e formato padronizado em BRL.
+- **FR-015**: O sistema DEVE deduplicar lancamentos potenciais quando houver mesmo autor, mesma descricao normalizada e mesmo valor em janela de ate 5 minutos.
+- **FR-016**: O sistema DEVE manter no relatorio os itens deduplicados com indicacao de que foram excluidos do calculo para evitar dupla contagem.
+- **FR-017**: O sistema DEVE interpretar valores negativos como estorno somente quando a mensagem contiver uma palavra-chave explicita de estorno (`extorno`, `reembolso`, `cancelar`, `deletar`).
+- **FR-018**: O sistema DEVE rejeitar valores negativos sem palavra-chave de estorno e registrar o motivo no relatorio de inconsistencias.
+- **FR-019**: O sistema DEVE manter historico completo dos fechamentos e lancamentos processados, sem prazo automatico de expurgo.
+- **FR-020**: O sistema DEVE atribuir ao mes atual os lancamentos sem data identificavel e marcar essa inferencia no relatorio mensal.
 
 ### Assumptions & Dependencies
 
@@ -88,6 +106,8 @@ Como usuario, quero receber um extrato detalhado dos lancamentos considerados pa
 - O fechamento e bilateral (somente usuario e esposa), sem rateio para terceiros.
 - A moeda de referencia para todos os calculos e o real brasileiro (BRL).
 - O lote fornecido contem informacoes confiaveis de autor e data para cada mensagem candidata.
+- O usuario aceita manter historico financeiro completo por tempo indeterminado para auditoria futura.
+- Regras formais de controle de acesso para processar/consultar fechamentos ficam fora do escopo desta fase.
 
 ### Key Entities *(include if feature involves data)*
 
