@@ -158,7 +158,7 @@ For quick loops, run at least impacted single-test node IDs.
 
 ## Active Technologies
 - Python 3.12 + FastAPI, Pydantic v2, SQLAlchemy 2.x, psycopg 3, Alembic, Typer (002-whatsapp-split-reconciliation)
-- PostgreSQL 16 (movimentacoes append-only e fechamento mensal imutavel) (002-whatsapp-split-reconciliation)
+- PostgreSQL 16 (movimentacoes append-only e consultas mensais sob demanda) (002-whatsapp-split-reconciliation)
 
 ## Recent Changes
 - 002-whatsapp-split-reconciliation: Added Python 3.12 + FastAPI, Pydantic v2, SQLAlchemy 2.x, psycopg 3, Alembic, Typer

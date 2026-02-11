@@ -97,14 +97,10 @@ curl "http://localhost:8000/v1/movements?year=2026&month=2&type=purchase&descrip
 curl "http://localhost:8000/v1/months/2026/2/summary"
 ```
 
-### 6.5 Fechar mes e obter relatorio final
+### 6.5 Consultar relatorio mensal sob demanda
 
 ```bash
-curl -X POST "http://localhost:8000/v1/months/2026/2/close" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "requested_by_participant_id": "11111111-1111-1111-1111-111111111111"
-  }'
+curl "http://localhost:8000/v1/months/2026/2/report"
 ```
 
 ## 7) Validacao de qualidade antes de merge
@@ -122,4 +118,4 @@ Executar cenario de carga representativo antes do release para confirmar:
 
 - registro de movimentacao <= 2s p95
 - resumo mensal <= 3s
-- fechamento mensal <= 5s
+- relatorio mensal <= 5s

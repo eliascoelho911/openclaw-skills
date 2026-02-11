@@ -3,7 +3,8 @@
 ## Escopo pesquisado
 
 Esta fase resolve as decisoes tecnicas para entregar uma API FastAPI com
-persistencia PostgreSQL no contexto do fechamento mensal de despesas do casal.
+persistencia PostgreSQL no contexto de reconciliacao mensal de despesas do casal
+sem fechamento de mes na v1.
 
 ## Decisoes
 
@@ -20,7 +21,7 @@ persistencia PostgreSQL no contexto do fechamento mensal de despesas do casal.
 - **Decision**: Usar PostgreSQL 16 com SQLAlchemy 2.x e driver psycopg 3.
 - **Rationale**: Permite constraints fortes em banco (unicidade de deduplicacao,
   FK para estorno), transacoes ACID e consultas agregadas eficientes para resumo
-  e fechamento mensal.
+  e relatorio mensal sob demanda.
 - **Alternatives considered**: SQLite (limitacoes de concorrencia e escala),
   acesso SQL cru com psycopg (mais risco de duplicacao de regras).
 
@@ -90,14 +91,14 @@ persistencia PostgreSQL no contexto do fechamento mensal de despesas do casal.
 - **Alternatives considered**: Exigir sempre `original_purchase_id` (mais seguro,
   mas pior UX), busca fuzzy por descricao/valor (ambigua e sujeita a erro).
 
-### 8) Fechamento idempotente e imutabilidade
+### 8) Relatorio mensal sem fechamento
 
-- **Decision**: Persistir fechamento em `monthly_closures` com unicidade por
-  `competence_month`; segunda chamada retorna o mesmo snapshot salvo.
-- **Rationale**: Atende FR-008 e FR-009 sem recalculo divergente e facilita
-  historico consultavel por 24+ meses.
-- **Alternatives considered**: Recalcular sempre em tempo real (menos previsivel
-  para auditoria), permitir multiplas versoes por mes (complexidade sem ganho).
+- **Decision**: Nao persistir snapshot de fechamento na v1; calcular resumo e
+  relatorio mensal sob demanda a partir das movimentacoes append-only.
+- **Rationale**: Simplifica o dominio no curto prazo e atende a necessidade de
+  reconciliacao sem bloquear o mes para novos lancamentos.
+- **Alternatives considered**: Persistir snapshot imutavel por mes (mais
+  complexo para esta fase), manter versoes de fechamento (complexidade sem ganho).
 
 ### 9) Estrategia de testes e validacao de performance
 
@@ -122,7 +123,7 @@ persistencia PostgreSQL no contexto do fechamento mensal de despesas do casal.
 ### 10) Observabilidade minima
 
 - **Decision**: Registrar logs estruturados para operacoes criticas
-  (`movement_created`, `refund_rejected`, `month_closed`) com
+  (`movement_created`, `refund_rejected`, `monthly_report_generated`) com
   `participant_id`, `competence_month` e `request_id`.
 - **Rationale**: Melhora depuracao e auditoria operacional sem aumentar muito a
   complexidade do dominio.

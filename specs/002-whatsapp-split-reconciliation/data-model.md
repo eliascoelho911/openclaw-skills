@@ -6,7 +6,7 @@ O modelo foi desenhado para:
 
 1. Registrar compras e estornos em historico append-only.
 2. Garantir consistencia monetaria (2 casas decimais) e deduplicacao por mes.
-3. Congelar resultado do fechamento mensal para consulta idempotente.
+3. Gerar resumo/relatorio mensal sob demanda a partir das movimentacoes.
 
 ## Entidades
 
@@ -70,66 +70,27 @@ Registro append-only de compra ou estorno.
   `purchase` no mesmo `competence_month` do estorno e mesmo
   `payer_participant_id` efetivo.
 - Soma de estornos vinculados nao pode ultrapassar o valor da compra original.
-- Nao permitir escrita em mes ja fechado.
 
-### 3) MonthlyClosure
+### 3) MonthlyReportProjection (derivado)
 
-Snapshot imutavel do fechamento de um mes.
+Visao calculada sob demanda (nao persistida) para uma competencia mensal.
 
-| Campo | Tipo | Regra |
-|-------|------|-------|
-| id | UUID | PK |
-| competence_month | DATE | NOT NULL, UNIQUE |
-| total_gross | NUMERIC(12,2) | NOT NULL |
-| total_refunds | NUMERIC(12,2) | NOT NULL |
-| total_net | NUMERIC(12,2) | NOT NULL |
-| transfer_amount | NUMERIC(12,2) | NOT NULL |
-| debtor_participant_id | UUID | FK -> `participants.id`, NULL quando sem transferencia |
-| creditor_participant_id | UUID | FK -> `participants.id`, NULL quando sem transferencia |
-| closed_by_participant_id | UUID | FK -> `participants.id`, NOT NULL |
-| closed_at | TIMESTAMPTZ | NOT NULL |
-| movement_count | INTEGER | NOT NULL |
-
-**Regras de validacao**
-
-- Um unico fechamento por `competence_month`.
-- Segunda chamada de fechamento do mesmo mes retorna o mesmo registro.
-- A partir da existencia do fechamento, o mes torna-se imutavel para novas
-  movimentacoes.
-
-### 4) MonthlyClosureParticipant
-
-Detalhamento do saldo individual no fechamento final.
-
-| Campo | Tipo | Regra |
-|-------|------|-------|
-| closure_id | UUID | FK -> `monthly_closures.id`, PK composta |
-| participant_id | UUID | FK -> `participants.id`, PK composta |
-| paid_total | NUMERIC(12,2) | NOT NULL |
-| share_due | NUMERIC(12,2) | NOT NULL |
-| net_balance | NUMERIC(12,2) | NOT NULL |
-
-**Regras de validacao**
-
-- Exatamente duas linhas por fechamento (uma por participante ativo).
-- `sum(net_balance)` deve ser `0.00`.
+| Campo | Tipo | Origem |
+|-------|------|--------|
+| competence_month | YYYY-MM | derivado de `financial_movements` |
+| total_gross | Money | soma de compras do mes |
+| total_refunds | Money | soma de estornos do mes |
+| total_net | Money | `total_gross - total_refunds` |
+| participants[] | lista | agregacao por participante |
+| transfer_instruction | objeto | calculado por saldo liquido 50/50 |
 
 ## Relacionamentos
 
 - `participants (1) -> (N) financial_movements` por `payer_participant_id`.
 - `participants (1) -> (N) financial_movements` por `requested_by_participant_id`.
 - `financial_movements (purchase 1) -> (N refund)` por `original_purchase_id`.
-- `monthly_closures (1) -> (2) monthly_closure_participants`.
 
 ## Estados e transicoes
-
-### Ciclo do mes
-
-`OPEN` -> `CLOSED`
-
-- `OPEN`: aceita novas compras e estornos validos.
-- `CLOSED`: rejeita qualquer nova movimentacao para aquela competencia.
-- Reabertura nao faz parte da v1.
 
 ### Ciclo da movimentacao
 
@@ -138,19 +99,11 @@ Detalhamento do saldo individual no fechamento final.
 - Nao existe update/delete.
 - Correcao e feita por novo estorno + novo lancamento.
 
-### Operacao de fechamento
-
-`NOT_CLOSED` -> `CLOSED_SNAPSHOT`
-
-- Primeiro fechamento persiste snapshot.
-- Fechamentos subsequentes retornam o mesmo snapshot (idempotencia).
-
 ## Invariantes de dominio
 
 1. Exatamente dois participantes ativos no contexto.
 2. Todo valor monetario persistido tem duas casas decimais.
 3. Nenhum estorno excede o valor da compra original.
-4. Nenhuma movimentacao entra em mes fechado.
-5. Duplicidade por external_id (mesmo participante + mesmo mes) e rejeitada.
-6. Estorno por `original_purchase_external_id` deve resolver exatamente uma
+4. Duplicidade por external_id (mesmo participante + mesmo mes) e rejeitada.
+5. Estorno por `original_purchase_external_id` deve resolver exatamente uma
    compra valida no contexto de mes + participante.
