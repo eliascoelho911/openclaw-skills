@@ -1,0 +1,29 @@
+[project]
+name = "myproject"
+version = "0.1.0"
+requires-python = ">=3.12"
+description = "Python Multi-Module Template"
+
+[dependency-groups]
+dev = [
+    "ruff",
+    "mypy",
+    "pytest",
+    "shared",
+    "example",
+]
+
+[tool.uv.sources]
+shared = { workspace = true }
+example = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*", "apps/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "apps", "tests"]
+pythonpath = ["packages/common/src", "apps/example/src"]
+addopts = "--tb=short -q --no-header --import-mode=importlib"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

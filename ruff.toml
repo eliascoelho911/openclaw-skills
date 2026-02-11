@@ -1,0 +1,20 @@
+target-version = "py312"
+line-length = 88
+src = ["packages/*/src", "apps/*/src"]
+
+[lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "N",    # pep8-naming
+    "RUF",  # ruff-specific
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
