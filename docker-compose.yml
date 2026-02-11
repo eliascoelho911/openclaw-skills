@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydb
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://myuser:mypassword@db:5432/mydb
+      DATABASE_URL: postgresql://myuser:mypassword@db:5433/mydb
       OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy-key}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
       OPENAI_TIMEOUT: ${OPENAI_TIMEOUT:-30}
