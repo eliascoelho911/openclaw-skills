@@ -10,19 +10,17 @@ dev = [
     "mypy",
     "pytest",
     "shared",
-    "compras-divididas",
 ]
 
 [tool.uv.sources]
 shared = { workspace = true }
-compras-divididas = { workspace = true }
 
 [tool.uv.workspace]
-members = ["packages/*", "apps/*"]
+members = ["packages/*"]
 
 [tool.pytest.ini_options]
-testpaths = ["packages", "apps", "tests"]
-pythonpath = ["packages/common/src", "apps/compras_divididas/src"]
+testpaths = ["packages", "tests"]
+pythonpath = ["packages/common/src"]
 addopts = "--tb=short -q --no-header --import-mode=importlib"
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
