@@ -23,11 +23,11 @@
 
 **Purpose**: Preparar configuracoes base do projeto para API + PostgreSQL + migracoes.
 
-- [ ] T001 Configurar dependencias FastAPI/SQLAlchemy/psycopg/Alembic em `apps/compras_divididas/pyproject.toml`
-- [ ] T002 Criar configuracao central de ambiente (`DATABASE_URL`, `APP_TIMEZONE`) em `apps/compras_divididas/src/compras_divididas/core/settings.py`
-- [ ] T003 [P] Criar engine e session factory SQLAlchemy em `apps/compras_divididas/src/compras_divididas/db/session.py`
-- [ ] T004 [P] Inicializar metadata/base ORM em `apps/compras_divididas/src/compras_divididas/db/base.py`
-- [ ] T005 Ajustar bootstrap da API para registrar routers v1 em `apps/compras_divididas/src/compras_divididas/api/app.py`
+- [x] T001 Configurar dependencias FastAPI/SQLAlchemy/psycopg/Alembic em `apps/compras_divididas/pyproject.toml`
+- [x] T002 Criar configuracao central de ambiente (`DATABASE_URL`, `APP_TIMEZONE`) em `apps/compras_divididas/src/compras_divididas/core/settings.py`
+- [x] T003 [P] Criar engine e session factory SQLAlchemy em `apps/compras_divididas/src/compras_divididas/db/session.py`
+- [x] T004 [P] Inicializar metadata/base ORM em `apps/compras_divididas/src/compras_divididas/db/base.py`
+- [x] T005 Ajustar bootstrap da API para registrar routers v1 em `apps/compras_divididas/src/compras_divididas/api/app.py`
 
 ---
 
@@ -37,13 +37,13 @@
 
 **⚠️ CRITICAL**: Nenhuma historia deve comecar antes desta fase.
 
-- [ ] T006 Criar modelo ORM de participante em `apps/compras_divididas/src/compras_divididas/db/models/participant.py`
-- [ ] T007 [P] Criar modelo ORM de movimentacao financeira append-only em `apps/compras_divididas/src/compras_divididas/db/models/financial_movement.py`
-- [ ] T008 Criar migration Alembic com tabelas, checks e indice parcial unico de `external_id` em `apps/compras_divididas/alembic/versions/002_create_financial_core.py`
-- [ ] T009 [P] Implementar utilitario monetario com `Decimal` e `ROUND_HALF_UP` em `apps/compras_divididas/src/compras_divididas/domain/money.py`
-- [ ] T010 [P] Implementar utilitario de competencia mensal em timezone `America/Sao_Paulo` em `apps/compras_divididas/src/compras_divididas/domain/competence.py`
-- [ ] T011 [P] Definir hierarquia de excecoes de dominio em `apps/compras_divididas/src/compras_divididas/domain/errors.py`
-- [ ] T012 Implementar handler global de erros para codigos HTTP de contrato em `apps/compras_divididas/src/compras_divididas/api/error_handlers.py`
+- [x] T006 Criar modelo ORM de participante em `apps/compras_divididas/src/compras_divididas/db/models/participant.py`
+- [x] T007 [P] Criar modelo ORM de movimentacao financeira append-only em `apps/compras_divididas/src/compras_divididas/db/models/financial_movement.py`
+- [x] T008 Criar migration Alembic com tabelas, checks e indice parcial unico de `external_id` em `apps/compras_divididas/alembic/versions/002_create_financial_core.py`
+- [x] T009 [P] Implementar utilitario monetario com `Decimal` e `ROUND_HALF_UP` em `apps/compras_divididas/src/compras_divididas/domain/money.py`
+- [x] T010 [P] Implementar utilitario de competencia mensal em timezone `America/Sao_Paulo` em `apps/compras_divididas/src/compras_divididas/domain/competence.py`
+- [x] T011 [P] Definir hierarquia de excecoes de dominio em `apps/compras_divididas/src/compras_divididas/domain/errors.py`
+- [x] T012 Implementar handler global de erros para codigos HTTP de contrato em `apps/compras_divididas/src/compras_divididas/api/error_handlers.py`
 
 **Checkpoint**: Base pronta para implementar historias de usuario de forma independente.
 
