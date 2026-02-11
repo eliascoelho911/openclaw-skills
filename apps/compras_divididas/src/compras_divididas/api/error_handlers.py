@@ -6,6 +6,7 @@ from http import HTTPStatus
 from typing import Any, cast
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
@@ -42,7 +43,7 @@ async def handle_validation_error(
         content=_error_payload(
             code="INVALID_REQUEST",
             message="Request validation failed.",
-            details={"errors": exc.errors()},
+            details={"errors": jsonable_encoder(exc.errors())},
         ),
     )
 

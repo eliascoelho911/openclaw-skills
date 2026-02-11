@@ -57,20 +57,20 @@
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Criar contract test de `POST /v1/movements` (201/400/404/409/422) em `apps/compras_divididas/tests/contract/test_create_movement.py`
-- [ ] T014 [P] [US1] Criar integration test para fluxo compra->estorno e limite de estorno em `apps/compras_divididas/tests/integration/test_create_movement_flow.py`
-- [ ] T015 [P] [US1] Criar unit tests de arredondamento, defaults e deduplicacao em `apps/compras_divididas/tests/unit/test_movement_service_create.py`
+- [x] T013 [P] [US1] Criar contract test de `POST /v1/movements` (201/400/404/409/422) em `apps/compras_divididas/tests/contract/test_create_movement.py`
+- [x] T014 [P] [US1] Criar integration test para fluxo compra->estorno e limite de estorno em `apps/compras_divididas/tests/integration/test_create_movement_flow.py`
+- [x] T015 [P] [US1] Criar unit tests de arredondamento, defaults e deduplicacao em `apps/compras_divididas/tests/unit/test_movement_service_create.py`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Criar schemas Pydantic de criacao e resposta de movimentacao em `apps/compras_divididas/src/compras_divididas/api/schemas/movements.py`
-- [ ] T017 [P] [US1] Implementar repositorio de movimentos com lock da compra original e checagem de duplicidade em `apps/compras_divididas/src/compras_divididas/repositories/movement_repository.py`
-- [ ] T018 [P] [US1] Implementar repositorio de participantes ativos (exatamente dois) em `apps/compras_divididas/src/compras_divididas/repositories/participant_repository.py`
-- [ ] T019 [US1] Implementar servico de registro append-only com resolucao por `original_purchase_external_id` em `apps/compras_divididas/src/compras_divididas/services/movement_service.py`
-- [ ] T020 [US1] Implementar endpoint `POST /v1/movements` em `apps/compras_divididas/src/compras_divididas/api/routes/movements.py`
-- [ ] T021 [US1] Registrar dependencia de sessao e injecao de servicos em `apps/compras_divididas/src/compras_divididas/api/dependencies.py`
-- [ ] T022 [US1] Adicionar log estruturado `movement_created` e `refund_rejected` em `apps/compras_divididas/src/compras_divididas/services/movement_service.py`
-- [ ] T023 [US1] Garantir conformidade do contrato com `specs/002-whatsapp-split-reconciliation/contracts/openapi.yaml`
+- [x] T016 [P] [US1] Criar schemas Pydantic de criacao e resposta de movimentacao em `apps/compras_divididas/src/compras_divididas/api/schemas/movements.py`
+- [x] T017 [P] [US1] Implementar repositorio de movimentos com lock da compra original e checagem de duplicidade em `apps/compras_divididas/src/compras_divididas/repositories/movement_repository.py`
+- [x] T018 [P] [US1] Implementar repositorio de participantes ativos (exatamente dois) em `apps/compras_divididas/src/compras_divididas/repositories/participant_repository.py`
+- [x] T019 [US1] Implementar servico de registro append-only com resolucao por `original_purchase_external_id` em `apps/compras_divididas/src/compras_divididas/services/movement_service.py`
+- [x] T020 [US1] Implementar endpoint `POST /v1/movements` em `apps/compras_divididas/src/compras_divididas/api/routes/movements.py`
+- [x] T021 [US1] Registrar dependencia de sessao e injecao de servicos em `apps/compras_divididas/src/compras_divididas/api/dependencies.py`
+- [x] T022 [US1] Adicionar log estruturado `movement_created` e `refund_rejected` em `apps/compras_divididas/src/compras_divididas/services/movement_service.py`
+- [x] T023 [US1] Garantir conformidade do contrato com `specs/002-whatsapp-split-reconciliation/contracts/openapi.yaml`
 
 **Checkpoint**: US1 funcional e testavel isoladamente (MVP de registro financeiro).
 

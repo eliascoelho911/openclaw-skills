@@ -60,7 +60,12 @@ class FinancialMovement(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     movement_type: Mapped[MovementType] = mapped_column(
-        Enum(MovementType, name="movement_type"),
+        Enum(
+            MovementType,
+            name="movement_type",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+            validate_strings=True,
+        ),
         nullable=False,
     )
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
