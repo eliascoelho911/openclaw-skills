@@ -109,16 +109,16 @@
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Criar contract test de `GET /v1/months/{year}/{month}/report` em `apps/compras_divididas/tests/contract/test_get_monthly_report.py`
-- [ ] T034 [P] [US3] Criar integration test para relatorio com transferencia e sem transferencia em `apps/compras_divididas/tests/integration/test_monthly_report.py`
-- [ ] T035 [P] [US3] Criar unit tests de instrucao de transferencia (saldo positivo/zero) em `apps/compras_divididas/tests/unit/test_transfer_instruction.py`
+- [x] T033 [P] [US3] Criar contract test de `GET /v1/months/{year}/{month}/report` em `apps/compras_divididas/tests/contract/test_get_monthly_report.py`
+- [x] T034 [P] [US3] Criar integration test para relatorio com transferencia e sem transferencia em `apps/compras_divididas/tests/integration/test_monthly_report.py`
+- [x] T035 [P] [US3] Criar unit tests de instrucao de transferencia (saldo positivo/zero) em `apps/compras_divididas/tests/unit/test_transfer_instruction.py`
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Implementar servico de relatorio mensal sob demanda reaproveitando agregacoes do resumo em `apps/compras_divididas/src/compras_divididas/services/monthly_report_service.py`
-- [ ] T037 [US3] Implementar endpoint `GET /v1/months/{year}/{month}/report` em `apps/compras_divididas/src/compras_divididas/api/routes/monthly_reports.py`
-- [ ] T038 [US3] Adicionar log estruturado `monthly_report_generated` com `participant_id`, `competence_month` e `request_id` em `apps/compras_divididas/src/compras_divididas/services/monthly_report_service.py`
-- [ ] T039 [US3] Garantir serializacao monetaria BRL com duas casas no relatorio em `apps/compras_divididas/src/compras_divididas/api/schemas/monthly_summary.py`
+- [x] T036 [US3] Implementar servico de relatorio mensal sob demanda reaproveitando agregacoes do resumo em `apps/compras_divididas/src/compras_divididas/services/monthly_report_service.py`
+- [x] T037 [US3] Implementar endpoint `GET /v1/months/{year}/{month}/report` em `apps/compras_divididas/src/compras_divididas/api/routes/monthly_reports.py`
+- [x] T038 [US3] Adicionar log estruturado `monthly_report_generated` com `participant_id`, `competence_month` e `request_id` em `apps/compras_divididas/src/compras_divididas/services/monthly_report_service.py`
+- [x] T039 [US3] Garantir serializacao monetaria BRL com duas casas no relatorio em `apps/compras_divididas/src/compras_divididas/api/schemas/monthly_summary.py`
 
 **Checkpoint**: US3 funcional com instrucao de transferencia e comportamento para mes vazio.
 

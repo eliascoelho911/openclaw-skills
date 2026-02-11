@@ -3,11 +3,17 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 
 from compras_divididas.domain.money import format_money
+
+if TYPE_CHECKING:
+    from compras_divididas.services.monthly_summary_service import (
+        MonthlySummaryProjection,
+    )
 
 
 class ParticipantBalanceResponse(BaseModel):
@@ -85,4 +91,30 @@ class MonthlySummaryResponse(BaseModel):
             total_net=format_money(total_net),
             participants=participants,
             transfer=transfer,
+        )
+
+    @classmethod
+    def from_projection(
+        cls, projection: MonthlySummaryProjection
+    ) -> MonthlySummaryResponse:
+        participant_rows = [
+            ParticipantBalanceResponse.from_values(
+                participant_id=item.participant_id,
+                paid_total=item.paid_total,
+                share_due=item.share_due,
+                net_balance=item.net_balance,
+            )
+            for item in projection.participants
+        ]
+        return cls.from_values(
+            competence_month=f"{projection.competence_month.year:04d}-{projection.competence_month.month:02d}",
+            total_gross=projection.total_gross,
+            total_refunds=projection.total_refunds,
+            total_net=projection.total_net,
+            participants=participant_rows,
+            transfer=TransferInstructionResponse.from_values(
+                amount=projection.transfer.amount,
+                debtor_participant_id=projection.transfer.debtor_participant_id,
+                creditor_participant_id=projection.transfer.creditor_participant_id,
+            ),
         )

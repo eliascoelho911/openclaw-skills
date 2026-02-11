@@ -61,6 +61,42 @@ class MonthlySummaryProjection:
     transfer: TransferInstruction
 
 
+def build_transfer_instruction(
+    participant_balances: list[ParticipantBalance],
+) -> TransferInstruction:
+    """Build transfer instruction from participant net balances."""
+
+    debtor = next(
+        (
+            participant
+            for participant in participant_balances
+            if participant.net_balance < 0
+        ),
+        None,
+    )
+    creditor = next(
+        (
+            participant
+            for participant in participant_balances
+            if participant.net_balance > 0
+        ),
+        None,
+    )
+
+    if debtor is None or creditor is None:
+        return TransferInstruction(
+            amount=Decimal("0.00"),
+            debtor_participant_id=None,
+            creditor_participant_id=None,
+        )
+
+    return TransferInstruction(
+        amount=quantize_money(abs(debtor.net_balance)),
+        debtor_participant_id=debtor.participant_id,
+        creditor_participant_id=creditor.participant_id,
+    )
+
+
 class MonthlySummaryService:
     """Computes monthly partial summary and 50/50 balance split."""
 
@@ -97,7 +133,7 @@ class MonthlySummaryService:
                 )
             )
 
-        transfer = self._build_transfer_instruction(participant_balances)
+        transfer = build_transfer_instruction(participant_balances)
         return MonthlySummaryProjection(
             competence_month=competence_month,
             total_gross=gross,
@@ -105,38 +141,4 @@ class MonthlySummaryService:
             total_net=net,
             participants=participant_balances,
             transfer=transfer,
-        )
-
-    @staticmethod
-    def _build_transfer_instruction(
-        participant_balances: list[ParticipantBalance],
-    ) -> TransferInstruction:
-        debtor = next(
-            (
-                participant
-                for participant in participant_balances
-                if participant.net_balance < 0
-            ),
-            None,
-        )
-        creditor = next(
-            (
-                participant
-                for participant in participant_balances
-                if participant.net_balance > 0
-            ),
-            None,
-        )
-
-        if debtor is None or creditor is None:
-            return TransferInstruction(
-                amount=Decimal("0.00"),
-                debtor_participant_id=None,
-                creditor_participant_id=None,
-            )
-
-        return TransferInstruction(
-            amount=quantize_money(abs(debtor.net_balance)),
-            debtor_participant_id=debtor.participant_id,
-            creditor_participant_id=creditor.participant_id,
         )

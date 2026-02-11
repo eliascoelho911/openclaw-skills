@@ -13,6 +13,7 @@ from compras_divididas.repositories.movement_query_repository import (
 )
 from compras_divididas.repositories.movement_repository import MovementRepository
 from compras_divididas.repositories.participant_repository import ParticipantRepository
+from compras_divididas.services.monthly_report_service import MonthlyReportService
 from compras_divididas.services.monthly_summary_service import MonthlySummaryService
 from compras_divididas.services.movement_service import MovementService
 
@@ -48,3 +49,15 @@ def get_monthly_summary_service(
         participant_repository=ParticipantRepository(session),
         movement_query_repository=MovementQueryRepository(session),
     )
+
+
+def get_monthly_report_service(
+    session: Annotated[Session, Depends(get_db_session)],
+) -> MonthlyReportService:
+    """Build monthly report service reusing summary aggregation service."""
+
+    summary_service = MonthlySummaryService(
+        participant_repository=ParticipantRepository(session),
+        movement_query_repository=MovementQueryRepository(session),
+    )
+    return MonthlyReportService(monthly_summary_service=summary_service)
