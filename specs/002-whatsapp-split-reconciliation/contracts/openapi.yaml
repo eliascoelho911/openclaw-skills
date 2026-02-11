@@ -1,0 +1,574 @@
+openapi: 3.1.0
+info:
+  title: Compras Divididas API
+  version: 0.1.0
+  description: |
+    API v1 para registrar compras/estornos, consultar resumo mensal e fechar mes
+    com relatorio final idempotente. Esta versao opera sem autenticacao e exige
+    identificacao explicita do participante em cada requisicao critica.
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: Participants
+  - name: Movements
+  - name: Monthly Summary
+  - name: Monthly Closure
+paths:
+  /v1/participants:
+    get:
+      tags: [Participants]
+      summary: Lista os dois participantes ativos
+      operationId: listParticipants
+      responses:
+        "200":
+          description: Participantes ativos
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [participants]
+                properties:
+                  participants:
+                    type: array
+                    minItems: 2
+                    maxItems: 2
+                    items:
+                      $ref: "#/components/schemas/Participant"
+
+  /v1/movements:
+    get:
+      tags: [Movements]
+      summary: Lista movimentacoes por filtros
+      operationId: listMovements
+      parameters:
+        - in: query
+          name: year
+          required: true
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+        - in: query
+          name: month
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+        - in: query
+          name: type
+          required: false
+          schema:
+            type: string
+            enum: [purchase, refund]
+        - in: query
+          name: description
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 280
+        - in: query
+          name: amount
+          required: false
+          schema:
+            $ref: "#/components/schemas/PositiveMoney"
+        - in: query
+          name: participant_id
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filtra por payer_participant_id.
+        - in: query
+          name: external_id
+          required: false
+          schema:
+            type: string
+            maxLength: 120
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Lista paginada de movimentacoes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovementListResponse"
+        "400":
+          description: Filtros invalidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags: [Movements]
+      summary: Registra compra ou estorno (append-only)
+      operationId: createMovement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMovementRequest"
+      responses:
+        "201":
+          description: Movimentacao registrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movement"
+        "400":
+          description: Payload invalido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Compra original nao encontrada para estorno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Mes fechado ou duplicidade por external_id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Regra de negocio violada (ex estorno acima da compra)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/months/{year}/{month}/summary:
+    get:
+      tags: [Monthly Summary]
+      summary: Retorna resumo parcial ou final do mes
+      operationId: getMonthlySummary
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Month"
+      responses:
+        "200":
+          description: Resumo mensal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlySummary"
+        "404":
+          description: Mes sem dados e sem fechamento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/months/{year}/{month}/close:
+    post:
+      tags: [Monthly Closure]
+      summary: Fecha mes e retorna relatorio final idempotente
+      operationId: closeMonth
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Month"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CloseMonthRequest"
+      responses:
+        "200":
+          description: Fechamento executado ou recuperado (idempotente)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClosureReport"
+        "409":
+          description: Contexto invalido para fechar (ex participantes ativos != 2)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/months/{year}/{month}/closure:
+    get:
+      tags: [Monthly Closure]
+      summary: Consulta relatorio final de um mes fechado
+      operationId: getMonthClosure
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Month"
+      responses:
+        "200":
+          description: Relatorio final
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClosureReport"
+        "404":
+          description: Mes ainda nao fechado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/closures:
+    get:
+      tags: [Monthly Closure]
+      summary: Lista historico de fechamentos mensais
+      operationId: listClosures
+      parameters:
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          description: Limite inferior no formato YYYY-MM
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          description: Limite superior no formato YYYY-MM
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 24
+            default: 24
+      responses:
+        "200":
+          description: Fechamentos por periodo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ClosureHistoryItem"
+
+components:
+  parameters:
+    Year:
+      in: path
+      name: year
+      required: true
+      schema:
+        type: integer
+        minimum: 2000
+        maximum: 2100
+    Month:
+      in: path
+      name: month
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+
+  schemas:
+    Participant:
+      type: object
+      required: [id, code, display_name, is_active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          maxLength: 32
+        display_name:
+          type: string
+          maxLength: 120
+        is_active:
+          type: boolean
+
+    CreateMovementRequest:
+      type: object
+      required:
+        - type
+        - amount
+        - description
+        - requested_by_participant_id
+      properties:
+        type:
+          type: string
+          enum: [purchase, refund]
+        amount:
+          $ref: "#/components/schemas/PositiveMoney"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 280
+        occurred_at:
+          type: string
+          format: date-time
+          description: Opcional. Quando ausente, usa o timestamp atual do registro.
+        payer_participant_id:
+          type: string
+          format: uuid
+          description: Opcional. Quando ausente, assume requested_by_participant_id.
+        requested_by_participant_id:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+          maxLength: 120
+        original_purchase_id:
+          type: string
+          format: uuid
+          description: Opcional para refund quando original_purchase_external_id for informado.
+        original_purchase_external_id:
+          type: string
+          maxLength: 120
+          description: Opcional para refund quando original_purchase_id for informado.
+      allOf:
+        - if:
+            properties:
+              type:
+                const: refund
+          then:
+            anyOf:
+              - required: [original_purchase_id]
+              - required: [original_purchase_external_id]
+
+    Movement:
+      type: object
+      required:
+        - id
+        - type
+        - amount
+        - description
+        - occurred_at
+        - competence_month
+        - payer_participant_id
+        - requested_by_participant_id
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [purchase, refund]
+        amount:
+          $ref: "#/components/schemas/Money"
+        description:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        competence_month:
+          type: string
+          pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        payer_participant_id:
+          type: string
+          format: uuid
+        requested_by_participant_id:
+          type: string
+          format: uuid
+        external_id:
+          type: string
+          nullable: true
+        original_purchase_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    MovementListResponse:
+      type: object
+      required: [items, total, limit, offset]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movement"
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+        offset:
+          type: integer
+          minimum: 0
+
+    MonthlySummary:
+      type: object
+      required:
+        - competence_month
+        - total_gross
+        - total_refunds
+        - total_net
+        - participants
+        - transfer
+        - is_closed
+      properties:
+        competence_month:
+          type: string
+          pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        total_gross:
+          $ref: "#/components/schemas/Money"
+        total_refunds:
+          $ref: "#/components/schemas/Money"
+        total_net:
+          $ref: "#/components/schemas/Money"
+        participants:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/ParticipantBalance"
+        transfer:
+          $ref: "#/components/schemas/TransferInstruction"
+        is_closed:
+          type: boolean
+
+    ParticipantBalance:
+      type: object
+      required: [participant_id, paid_total, share_due, net_balance]
+      properties:
+        participant_id:
+          type: string
+          format: uuid
+        paid_total:
+          $ref: "#/components/schemas/Money"
+        share_due:
+          $ref: "#/components/schemas/Money"
+        net_balance:
+          $ref: "#/components/schemas/Money"
+
+    TransferInstruction:
+      type: object
+      required: [amount, debtor_participant_id, creditor_participant_id]
+      properties:
+        amount:
+          $ref: "#/components/schemas/Money"
+        debtor_participant_id:
+          type: string
+          format: uuid
+          nullable: true
+        creditor_participant_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    CloseMonthRequest:
+      type: object
+      required: [requested_by_participant_id]
+      properties:
+        requested_by_participant_id:
+          type: string
+          format: uuid
+
+    ClosureReport:
+      type: object
+      required:
+        - closure_id
+        - competence_month
+        - closed_at
+        - closed_by_participant_id
+        - movement_count
+        - total_gross
+        - total_refunds
+        - total_net
+        - participants
+        - transfer
+        - already_closed
+      properties:
+        closure_id:
+          type: string
+          format: uuid
+        competence_month:
+          type: string
+          pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        closed_at:
+          type: string
+          format: date-time
+        closed_by_participant_id:
+          type: string
+          format: uuid
+        movement_count:
+          type: integer
+          minimum: 0
+        total_gross:
+          $ref: "#/components/schemas/Money"
+        total_refunds:
+          $ref: "#/components/schemas/Money"
+        total_net:
+          $ref: "#/components/schemas/Money"
+        participants:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/ParticipantBalance"
+        transfer:
+          $ref: "#/components/schemas/TransferInstruction"
+        already_closed:
+          type: boolean
+
+    ClosureHistoryItem:
+      type: object
+      required: [closure_id, competence_month, closed_at, transfer_amount]
+      properties:
+        closure_id:
+          type: string
+          format: uuid
+        competence_month:
+          type: string
+          pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+        closed_at:
+          type: string
+          format: date-time
+        transfer_amount:
+          $ref: "#/components/schemas/Money"
+
+    PositiveMoney:
+      type: string
+      pattern: "^[0-9]+\\.[0-9]{2}$"
+      examples: ["12.30", "1000.00"]
+
+    Money:
+      type: string
+      pattern: "^-?[0-9]+\\.[0-9]{2}$"
+      examples: ["0.00", "10.50", "-10.50"]
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: ["DUPLICATE_EXTERNAL_ID", "MONTH_CLOSED", "REFUND_LIMIT_EXCEEDED"]
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
