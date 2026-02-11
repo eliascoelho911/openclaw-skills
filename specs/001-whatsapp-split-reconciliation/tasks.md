@@ -17,12 +17,12 @@
 
 **Purpose**: Inicializar app `compras_divididas` no workspace e pontos de entrada CLI/Skill.
 
-- [ ] T001 Criar manifesto do app em `apps/compras_divididas/pyproject.toml`
-- [ ] T002 Registrar novo app no workspace em `pyproject.toml`
-- [ ] T003 [P] Atualizar `mypy_path` para o app em `mypy.ini`
-- [ ] T004 [P] Criar pacote base do app em `apps/compras_divididas/src/compras_divididas/__init__.py`
-- [ ] T005 [P] Criar bootstrap inicial do CLI Typer em `apps/compras_divididas/src/compras_divididas/cli.py`
-- [ ] T006 [P] Criar bootstrap inicial da Skill OpenClaw em `apps/compras_divididas/src/compras_divididas/skill.py`
+- [x] T001 Criar manifesto do app em `apps/compras_divididas/pyproject.toml`
+- [x] T002 Registrar novo app no workspace em `pyproject.toml`
+- [x] T003 [P] Atualizar `mypy_path` para o app em `mypy.ini`
+- [x] T004 [P] Criar pacote base do app em `apps/compras_divididas/src/compras_divididas/__init__.py`
+- [x] T005 [P] Criar bootstrap inicial do CLI Typer em `apps/compras_divididas/src/compras_divididas/cli.py`
+- [x] T006 [P] Criar bootstrap inicial da Skill OpenClaw em `apps/compras_divididas/src/compras_divididas/skill.py`
 
 ---
 
@@ -32,13 +32,13 @@
 
 **⚠️ CRITICAL**: Nenhuma implementacao de user story deve iniciar antes do fim desta fase.
 
-- [ ] T007 Implementar carregamento tipado de configuracoes em `apps/compras_divididas/src/compras_divididas/infrastructure/settings.py`
-- [ ] T008 [P] Implementar engine/sessao SQLAlchemy em `apps/compras_divididas/src/compras_divididas/infrastructure/db/session.py`
-- [ ] T009 Configurar ambiente Alembic em `apps/compras_divididas/alembic/env.py`
-- [ ] T010 Criar migracao inicial de tabelas centrais em `apps/compras_divididas/alembic/versions/001_initial_core_tables.py`
-- [ ] T011 [P] Implementar value objects de dinheiro BRL e periodo em `apps/compras_divididas/src/compras_divididas/domain/value_objects.py`
-- [ ] T012 [P] Definir portas de repositorio do nucleo em `apps/compras_divididas/src/compras_divididas/application/ports/repositories.py`
-- [ ] T013 [P] Implementar adaptador OpenAIClient com JSON Schema estrito em `apps/compras_divididas/src/compras_divididas/infrastructure/llm/openai_classifier.py`
+- [x] T007 Implementar carregamento tipado de configuracoes em `apps/compras_divididas/src/compras_divididas/infrastructure/settings.py`
+- [x] T008 [P] Implementar engine/sessao SQLAlchemy em `apps/compras_divididas/src/compras_divididas/infrastructure/db/session.py`
+- [x] T009 Configurar ambiente Alembic em `apps/compras_divididas/alembic/env.py`
+- [x] T010 Criar migracao inicial de tabelas centrais em `apps/compras_divididas/alembic/versions/001_initial_core_tables.py`
+- [x] T011 [P] Implementar value objects de dinheiro BRL e periodo em `apps/compras_divididas/src/compras_divididas/domain/value_objects.py`
+- [x] T012 [P] Definir portas de repositorio do nucleo em `apps/compras_divididas/src/compras_divididas/application/ports/repositories.py`
+- [x] T013 [P] Implementar adaptador OpenAIClient com JSON Schema estrito em `apps/compras_divididas/src/compras_divididas/infrastructure/llm/openai_classifier.py`
 
 **Checkpoint**: Base pronta para implementar historias de usuario.
 
