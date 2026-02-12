@@ -40,6 +40,14 @@ def get_movement_query_repository(
     return MovementQueryRepository(session)
 
 
+def get_participant_repository(
+    session: Annotated[Session, Depends(get_db_session)],
+) -> ParticipantRepository:
+    """Build participant repository with per-request session."""
+
+    return ParticipantRepository(session)
+
+
 def get_monthly_summary_service(
     session: Annotated[Session, Depends(get_db_session)],
 ) -> MonthlySummaryService:

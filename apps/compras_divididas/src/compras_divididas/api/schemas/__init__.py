@@ -6,10 +6,12 @@ from compras_divididas.api.schemas.movements import (
     CreateMovementRequest,
     MovementResponse,
 )
+from compras_divididas.api.schemas.participants import ParticipantsListResponse
 
 __all__ = [
     "CreateMovementRequest",
     "MonthlySummaryResponse",
     "MovementListResponse",
     "MovementResponse",
+    "ParticipantsListResponse",
 ]
