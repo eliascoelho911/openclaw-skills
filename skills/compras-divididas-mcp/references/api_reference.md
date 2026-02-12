@@ -33,6 +33,15 @@
 - Call `list_participants` at the start of the session and reuse the returned IDs.
 - After every tool execution, format the user-facing answer using `references/response_templates.md`.
 
+### Intent mapping for installment shorthand
+
+- Interpret messages like `Smartphone 500 12x` or `Smartphone 500x12` as recurrence intent.
+- Parse the value before `x` as installment amount and normalize to 2 decimals.
+- Parse the value after `x` as installment count.
+- When installment count is `>= 2`, call `create_recurrence` (not `create_movement`).
+- Build fixed-duration recurrence by deriving `end_competence_month` as `start + installments - 1` months (inclusive).
+- Use user-provided `start_competence_month`/`reference_day` when available; otherwise default to current competence month and current day in `America/Sao_Paulo`.
+
 ## Tool `list_participants`
 
 ### Purpose
@@ -156,6 +165,7 @@ Create one monthly recurrence in active status.
 - Validate month range when `end_competence_month` is provided (`end >= start`).
 - Recurrence is created with `status=active`.
 - `next_competence_month` is calculated by API based on schedule rules.
+- Skill policy: always send `split_config={"type":"equal"}` (50/50).
 
 ### Output contract (`RecurrenceResponse`)
 
@@ -275,6 +285,7 @@ Partially update an existing recurrence rule.
 - Use `clear_end_competence_month=true` to send `end_competence_month=null`.
 - Do not send `end_competence_month` together with `clear_end_competence_month=true`.
 - API applies last-write-wins semantics.
+- Skill policy: keep `split_config={"type":"equal"}` (50/50) whenever `split_config` is sent.
 
 ### Output contract
 
@@ -529,12 +540,13 @@ Return the on-demand consolidated monthly report, with the same schema as `get_m
 
 - Use `get_monthly_summary` for in-month tracking.
 - Use `get_monthly_report` for the consolidated view you share at month close.
+- Skill policy: always call both tools with `auto_generate=true`.
 
 ## Response templates (PT-BR)
 
 - Use `references/response_templates.md` after each tool call.
-- Prefer the script `scripts/render_tool_response.py` when you have JSON output and need consistent formatting.
 - Keep template outputs short, direct, and emoji-based.
+- Treat template usage as a hard contract: choose the matching variant (`success`, `error`, or `empty`) and do not add text outside the template.
 
 ## MCP error handling and recovery
 

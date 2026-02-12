@@ -9,6 +9,13 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 - Ser direto: sem explicacoes longas.
 - Mostrar apenas dados uteis para a acao seguinte.
 
+## Politica obrigatoria da skill
+
+- Apos cada chamada MCP, usar exatamente 1 template desta pagina (`sucesso`, `erro` ou `sem resultados`).
+- Preencher somente os placeholders; nao alterar a ordem das linhas do template escolhido.
+- Nao usar scripts externos para renderizacao; a resposta deve vir diretamente deste guia.
+- Nao incluir JSON bruto, cercas de codigo, cabecalhos extras, nem texto antes/depois do template.
+
 ## `list_participants`
 
 ### Sucesso
