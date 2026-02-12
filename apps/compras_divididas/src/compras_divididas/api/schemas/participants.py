@@ -15,6 +15,7 @@ class ParticipantResponse(BaseModel):
     id: UUID
     code: str
     display_name: str
+    is_active: bool
 
     @classmethod
     def from_model(cls, participant: Participant) -> ParticipantResponse:
@@ -22,6 +23,7 @@ class ParticipantResponse(BaseModel):
             id=participant.id,
             code=participant.code,
             display_name=participant.display_name,
+            is_active=participant.is_active,
         )
 
 
