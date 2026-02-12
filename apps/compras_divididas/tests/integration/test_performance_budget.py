@@ -4,7 +4,6 @@ from collections.abc import Generator
 from datetime import UTC, datetime
 from decimal import Decimal
 from time import perf_counter
-from uuid import UUID
 
 import pytest
 from fastapi.testclient import TestClient
@@ -24,9 +23,9 @@ PR002_SECONDS = 3.0
 PR003_SECONDS = 5.0
 
 
-def _seed_two_participants(session: Session) -> tuple[UUID, UUID]:
-    participant_a = Participant(code="ana", display_name="Ana", is_active=True)
-    participant_b = Participant(code="bia", display_name="Bia", is_active=True)
+def _seed_two_participants(session: Session) -> tuple[str, str]:
+    participant_a = Participant(id="ana", display_name="Ana", is_active=True)
+    participant_b = Participant(id="bia", display_name="Bia", is_active=True)
     session.add_all([participant_a, participant_b])
     session.commit()
     return participant_a.id, participant_b.id
@@ -35,8 +34,8 @@ def _seed_two_participants(session: Session) -> tuple[UUID, UUID]:
 def _seed_monthly_dataset(
     session: Session,
     *,
-    participant_a_id: UUID,
-    participant_b_id: UUID,
+    participant_a_id: str,
+    participant_b_id: str,
 ) -> None:
     participant_ids = [participant_a_id, participant_b_id]
     movements = [
@@ -78,7 +77,7 @@ def client(
 
 
 @pytest.fixture
-def participants(sqlite_session_factory: sessionmaker[Session]) -> tuple[UUID, UUID]:
+def participants(sqlite_session_factory: sessionmaker[Session]) -> tuple[str, str]:
     with sqlite_session_factory() as session:
         participant_a, participant_b = _seed_two_participants(session)
     return participant_a, participant_b
@@ -87,7 +86,7 @@ def participants(sqlite_session_factory: sessionmaker[Session]) -> tuple[UUID, U
 @pytest.fixture
 def populated_month(
     sqlite_session_factory: sessionmaker[Session],
-    participants: tuple[UUID, UUID],
+    participants: tuple[str, str],
 ) -> None:
     participant_a, participant_b = participants
     with sqlite_session_factory() as session:
@@ -100,7 +99,7 @@ def populated_month(
 
 def test_purchase_registration_p95_under_budget_pr001(
     client: TestClient,
-    participants: tuple[UUID, UUID],
+    participants: tuple[str, str],
 ) -> None:
     participant_a, _ = participants
     latencies: list[float] = []
@@ -111,7 +110,7 @@ def test_purchase_registration_p95_under_budget_pr001(
             "amount": "25.90",
             "description": f"Load request {index}",
             "occurred_at": "2026-03-10T12:00:00Z",
-            "requested_by_participant_id": str(participant_a),
+            "requested_by_participant_id": participant_a,
             "external_id": f"pr001-{index}",
         }
         start = perf_counter()

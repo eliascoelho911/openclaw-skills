@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from uuid import UUID
 
 import pytest
 from sqlalchemy import select
@@ -21,9 +20,9 @@ from compras_divididas.services.movement_service import (
 )
 
 
-def seed_two_participants(session: Session) -> tuple[UUID, UUID]:
-    participant_a = Participant(code="ana", display_name="Ana", is_active=True)
-    participant_b = Participant(code="bia", display_name="Bia", is_active=True)
+def seed_two_participants(session: Session) -> tuple[str, str]:
+    participant_a = Participant(id="ana", display_name="Ana", is_active=True)
+    participant_b = Participant(id="bia", display_name="Bia", is_active=True)
     session.add_all([participant_a, participant_b])
     session.commit()
     return participant_a.id, participant_b.id

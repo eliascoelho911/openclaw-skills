@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from decimal import Decimal
 from typing import TYPE_CHECKING
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from compras_divididas.api.schemas.participants import ParticipantId
 from compras_divididas.domain.money import format_money
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class ParticipantBalanceResponse(BaseModel):
     """Participant contribution and net balance for a month."""
 
-    participant_id: UUID
+    participant_id: ParticipantId
     paid_total: str = Field(pattern=r"^-?[0-9]+\.[0-9]{2}$")
     share_due: str = Field(pattern=r"^-?[0-9]+\.[0-9]{2}$")
     net_balance: str = Field(pattern=r"^-?[0-9]+\.[0-9]{2}$")
@@ -28,7 +28,7 @@ class ParticipantBalanceResponse(BaseModel):
     def from_values(
         cls,
         *,
-        participant_id: UUID,
+        participant_id: ParticipantId,
         paid_total: Decimal,
         share_due: Decimal,
         net_balance: Decimal,
@@ -45,16 +45,16 @@ class TransferInstructionResponse(BaseModel):
     """Transfer projection between debtor and creditor participants."""
 
     amount: str = Field(pattern=r"^-?[0-9]+\.[0-9]{2}$")
-    debtor_participant_id: UUID | None
-    creditor_participant_id: UUID | None
+    debtor_participant_id: ParticipantId | None
+    creditor_participant_id: ParticipantId | None
 
     @classmethod
     def from_values(
         cls,
         *,
         amount: Decimal,
-        debtor_participant_id: UUID | None,
-        creditor_participant_id: UUID | None,
+        debtor_participant_id: ParticipantId | None,
+        creditor_participant_id: ParticipantId | None,
     ) -> TransferInstructionResponse:
         return cls(
             amount=format_money(amount),

@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
 
@@ -18,6 +17,7 @@ from compras_divididas.api.schemas.movements import (
     CreateMovementRequest,
     MovementResponse,
 )
+from compras_divididas.api.schemas.participants import PARTICIPANT_ID_ENUM
 from compras_divididas.db.models.financial_movement import MovementType
 from compras_divididas.repositories.movement_query_repository import (
     MovementQueryFilters,
@@ -48,7 +48,10 @@ def list_movements(
     type: Annotated[Literal["purchase", "refund"] | None, Query()] = None,
     description: Annotated[str | None, Query(min_length=1, max_length=280)] = None,
     amount: Annotated[str | None, Query(pattern=r"^[0-9]+\.[0-9]{2}$")] = None,
-    participant_id: UUID | None = None,
+    participant_id: Annotated[
+        str | None,
+        Query(json_schema_extra={"enum": PARTICIPANT_ID_ENUM}),
+    ] = None,
     external_id: Annotated[str | None, Query(max_length=120)] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,

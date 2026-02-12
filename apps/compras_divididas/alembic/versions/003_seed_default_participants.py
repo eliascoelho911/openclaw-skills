@@ -16,18 +16,17 @@ down_revision: str | None = "002_create_financial_core"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
-ELIAS_ID = "7f3e0f2c-0f5e-4e5a-9f35-1f5d2e2d3a11"
-LETICIA_ID = "2ab1c46d-6d1b-4e97-9af0-3f5f7f0a8b22"
+ELIAS_ID = "elias"
+LETICIA_ID = "leticia"
 
 
 def upgrade() -> None:
     op.execute(
         sa.text(
             f"""
-            INSERT INTO participants (id, code, display_name, is_active)
+            INSERT INTO participants (id, display_name, is_active)
             SELECT
-                '{ELIAS_ID}'::uuid,
-                'elias',
+                '{ELIAS_ID}',
                 'Elias',
                 true
             WHERE NOT EXISTS (SELECT 1 FROM participants)
@@ -37,21 +36,20 @@ def upgrade() -> None:
     op.execute(
         sa.text(
             f"""
-            INSERT INTO participants (id, code, display_name, is_active)
+            INSERT INTO participants (id, display_name, is_active)
             SELECT
-                '{LETICIA_ID}'::uuid,
-                'leticia',
+                '{LETICIA_ID}',
                 'Letícia',
                 true
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM participants
-                WHERE id = '{LETICIA_ID}'::uuid
+                WHERE id = '{LETICIA_ID}'
             )
               AND EXISTS (
                 SELECT 1
                 FROM participants
-                WHERE id = '{ELIAS_ID}'::uuid
+                WHERE id = '{ELIAS_ID}'
             )
             """
         )
@@ -64,8 +62,8 @@ def downgrade() -> None:
             f"""
             DELETE FROM participants
             WHERE id IN (
-                '{ELIAS_ID}'::uuid,
-                '{LETICIA_ID}'::uuid
+                '{ELIAS_ID}',
+                '{LETICIA_ID}'
             )
             """
         )

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import UUID, uuid4
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
@@ -16,8 +15,7 @@ class Participant(Base):
 
     __tablename__ = "participants"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    code: Mapped[str] = mapped_column(String(32), nullable=False, unique=True)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
     display_name: Mapped[str] = mapped_column(String(120), nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean,

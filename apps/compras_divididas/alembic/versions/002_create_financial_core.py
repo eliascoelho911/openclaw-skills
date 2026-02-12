@@ -24,8 +24,7 @@ movement_type_enum = sa.Enum("purchase", "refund", name="movement_type")
 def upgrade() -> None:
     op.create_table(
         "participants",
-        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("code", sa.String(length=32), nullable=False),
+        sa.Column("id", sa.String(length=32), nullable=False),
         sa.Column("display_name", sa.String(length=120), nullable=False),
         sa.Column(
             "is_active",
@@ -46,7 +45,6 @@ def upgrade() -> None:
             server_default=sa.func.now(),
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("code", name="uq_participants_code"),
     )
 
     op.create_table(
@@ -57,12 +55,10 @@ def upgrade() -> None:
         sa.Column("description", sa.String(length=280), nullable=False),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("competence_month", sa.Date(), nullable=False),
-        sa.Column(
-            "payer_participant_id", postgresql.UUID(as_uuid=True), nullable=False
-        ),
+        sa.Column("payer_participant_id", sa.String(length=32), nullable=False),
         sa.Column(
             "requested_by_participant_id",
-            postgresql.UUID(as_uuid=True),
+            sa.String(length=32),
             nullable=False,
         ),
         sa.Column("external_id", sa.String(length=120), nullable=True),

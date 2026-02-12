@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
-from uuid import UUID
 
 from sqlalchemy import Select, case, func, select
 from sqlalchemy.orm import Session
@@ -25,7 +24,7 @@ class MovementQueryFilters:
     movement_type: MovementType | None = None
     description: str | None = None
     amount: Decimal | None = None
-    participant_id: UUID | None = None
+    participant_id: str | None = None
     external_id: str | None = None
     limit: int = 50
     offset: int = 0
@@ -85,7 +84,7 @@ class MovementQueryRepository:
 
     def get_paid_totals_by_participant(
         self, competence_month: date
-    ) -> dict[UUID, Decimal]:
+    ) -> dict[str, Decimal]:
         """Aggregate paid total by participant, subtracting refunds."""
 
         paid_case = case(
@@ -111,7 +110,7 @@ class MovementQueryRepository:
 
         rows = self._session.execute(statement).all()
         return {
-            participant_id: quantize_money(Decimal(total))
+            str(participant_id): quantize_money(Decimal(total))
             for participant_id, total in rows
         }
 

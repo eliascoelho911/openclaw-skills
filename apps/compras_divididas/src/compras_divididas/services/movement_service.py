@@ -42,7 +42,7 @@ class MovementRepositoryProtocol(Protocol):
         self,
         *,
         competence_month: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
         external_id: str,
     ) -> bool: ...
 
@@ -54,7 +54,7 @@ class MovementRepositoryProtocol(Protocol):
         self,
         *,
         competence_month: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
         external_id: str,
     ) -> FinancialMovement | None: ...
 
@@ -76,9 +76,9 @@ class CreateMovementInput:
     movement_type: MovementType
     amount: Decimal
     description: str
-    requested_by_participant_id: UUID
+    requested_by_participant_id: str
     occurred_at: datetime | None = None
-    payer_participant_id: UUID | None = None
+    payer_participant_id: str | None = None
     external_id: str | None = None
     original_purchase_id: UUID | None = None
     original_purchase_external_id: str | None = None
@@ -100,8 +100,9 @@ class MovementService:
 
     def create_movement(self, payload: CreateMovementInput) -> FinancialMovement:
         participants = self._participant_repository.list_active_exactly_two()
-        participant_ids = {participant.id for participant in participants}
-        if payload.requested_by_participant_id not in participant_ids:
+        participant_ids = {str(participant.id) for participant in participants}
+        requested_by_participant_id = payload.requested_by_participant_id.strip()
+        if requested_by_participant_id not in participant_ids:
             raise InvalidRequestError(
                 message=compose_error_message(
                     cause=(
@@ -113,8 +114,9 @@ class MovementService:
             )
 
         payer_participant_id = (
-            payload.payer_participant_id or payload.requested_by_participant_id
+            payload.payer_participant_id or requested_by_participant_id
         )
+        payer_participant_id = payer_participant_id.strip()
         if payer_participant_id not in participant_ids:
             raise InvalidRequestError(
                 message=compose_error_message(
@@ -170,7 +172,7 @@ class MovementService:
                 occurred_at=occurred_at,
                 competence_month=month,
                 payer_participant_id=payer_participant_id,
-                requested_by_participant_id=payload.requested_by_participant_id,
+                requested_by_participant_id=requested_by_participant_id,
                 external_id=external_id,
                 original_purchase_id=original_purchase.id
                 if original_purchase
@@ -184,7 +186,7 @@ class MovementService:
                 "movement_created",
                 extra={
                     "movement_id": str(created_movement.id),
-                    "participant_id": str(payload.requested_by_participant_id),
+                    "participant_id": requested_by_participant_id,
                     "competence_month": month.isoformat(),
                     "type": payload.movement_type.value,
                 },
@@ -199,7 +201,7 @@ class MovementService:
         *,
         payload: CreateMovementInput,
         competence_month_value: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
     ) -> FinancialMovement | None:
         if payload.movement_type == MovementType.PURCHASE:
             return None

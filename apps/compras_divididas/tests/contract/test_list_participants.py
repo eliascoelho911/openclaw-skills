@@ -33,8 +33,8 @@ def test_list_participants_returns_two_active_participants(
     with sqlite_session_factory() as session:
         session.add_all(
             [
-                Participant(code="ana", display_name="Ana", is_active=True),
-                Participant(code="bia", display_name="Bia", is_active=True),
+                Participant(id="ana", display_name="Ana", is_active=True),
+                Participant(id="bia", display_name="Bia", is_active=True),
             ]
         )
         session.commit()
@@ -45,7 +45,7 @@ def test_list_participants_returns_two_active_participants(
     body = response.json()
     assert "participants" in body
     assert len(body["participants"]) == 2
-    assert {item["code"] for item in body["participants"]} == {"ana", "bia"}
+    assert {item["id"] for item in body["participants"]} == {"ana", "bia"}
 
 
 def test_openapi_contains_participants_route() -> None:

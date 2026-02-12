@@ -9,6 +9,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from compras_divididas.api.schemas.participants import ParticipantId
 from compras_divididas.db.models.financial_movement import FinancialMovement
 from compras_divididas.domain.money import format_money
 
@@ -22,8 +23,8 @@ class CreateMovementRequest(BaseModel):
     amount: str = Field(pattern=r"^[0-9]+\.[0-9]{2}$")
     description: str = Field(min_length=1, max_length=280)
     occurred_at: datetime | None = None
-    payer_participant_id: UUID | None = None
-    requested_by_participant_id: UUID
+    payer_participant_id: ParticipantId | None = None
+    requested_by_participant_id: ParticipantId
     external_id: str | None = Field(default=None, max_length=120)
     original_purchase_id: UUID | None = None
     original_purchase_external_id: str | None = Field(default=None, max_length=120)
@@ -81,8 +82,8 @@ class MovementResponse(BaseModel):
     description: str
     occurred_at: datetime
     competence_month: str = Field(pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$")
-    payer_participant_id: UUID
-    requested_by_participant_id: UUID
+    payer_participant_id: ParticipantId
+    requested_by_participant_id: ParticipantId
     external_id: str | None
     original_purchase_id: UUID | None
     created_at: datetime
@@ -96,8 +97,8 @@ class MovementResponse(BaseModel):
             description=movement.description,
             occurred_at=movement.occurred_at,
             competence_month=f"{movement.competence_month.year:04d}-{movement.competence_month.month:02d}",
-            payer_participant_id=movement.payer_participant_id,
-            requested_by_participant_id=movement.requested_by_participant_id,
+            payer_participant_id=str(movement.payer_participant_id),
+            requested_by_participant_id=str(movement.requested_by_participant_id),
             external_id=movement.external_id,
             original_purchase_id=movement.original_purchase_id,
             created_at=movement.created_at,

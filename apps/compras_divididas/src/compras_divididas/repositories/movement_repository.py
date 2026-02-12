@@ -25,7 +25,7 @@ class MovementRepository:
         self,
         *,
         competence_month: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
         external_id: str,
     ) -> bool:
         statement = select(FinancialMovement.id).where(
@@ -50,7 +50,7 @@ class MovementRepository:
         self,
         *,
         competence_month: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
         external_id: str,
     ) -> FinancialMovement | None:
         statement = (

@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
 from typing import Protocol
-from uuid import UUID
 
 from compras_divididas.db.models.participant import Participant
 from compras_divididas.domain.money import quantize_money
@@ -27,14 +26,14 @@ class MovementQueryRepositoryProtocol(Protocol):
 
     def get_paid_totals_by_participant(
         self, competence_month: date
-    ) -> dict[UUID, Decimal]: ...
+    ) -> dict[str, Decimal]: ...
 
 
 @dataclass(frozen=True, slots=True)
 class ParticipantBalance:
     """Computed balance line for one participant."""
 
-    participant_id: UUID
+    participant_id: str
     paid_total: Decimal
     share_due: Decimal
     net_balance: Decimal
@@ -45,8 +44,8 @@ class TransferInstruction:
     """Projected transfer instruction for current monthly state."""
 
     amount: Decimal
-    debtor_participant_id: UUID | None
-    creditor_participant_id: UUID | None
+    debtor_participant_id: str | None
+    creditor_participant_id: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,11 +121,12 @@ class MonthlySummaryService:
         share_due = quantize_money(net / Decimal("2"))
         participant_balances: list[ParticipantBalance] = []
         for participant in participants:
-            paid_total = paid_totals.get(participant.id, Decimal("0.00"))
+            participant_id = str(participant.id)
+            paid_total = paid_totals.get(participant_id, Decimal("0.00"))
             net_balance = quantize_money(paid_total - share_due)
             participant_balances.append(
                 ParticipantBalance(
-                    participant_id=participant.id,
+                    participant_id=participant_id,
                     paid_total=paid_total,
                     share_due=share_due,
                     net_balance=net_balance,

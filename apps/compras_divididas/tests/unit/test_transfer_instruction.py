@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from uuid import uuid4
 
 from compras_divididas.services.monthly_summary_service import (
     ParticipantBalance,
@@ -10,8 +9,8 @@ from compras_divididas.services.monthly_summary_service import (
 
 
 def test_build_transfer_instruction_returns_debtor_creditor_and_amount() -> None:
-    participant_a = uuid4()
-    participant_b = uuid4()
+    participant_a = "ana"
+    participant_b = "bia"
 
     instruction = build_transfer_instruction(
         [
@@ -36,8 +35,8 @@ def test_build_transfer_instruction_returns_debtor_creditor_and_amount() -> None
 
 
 def test_build_transfer_instruction_returns_zero_for_balanced_month() -> None:
-    participant_a = uuid4()
-    participant_b = uuid4()
+    participant_a = "ana"
+    participant_b = "bia"
 
     instruction = build_transfer_instruction(
         [

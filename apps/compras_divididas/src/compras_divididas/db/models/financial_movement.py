@@ -74,11 +74,11 @@ class FinancialMovement(Base):
         DateTime(timezone=True), nullable=False
     )
     competence_month: Mapped[date] = mapped_column(Date, nullable=False)
-    payer_participant_id: Mapped[UUID] = mapped_column(
+    payer_participant_id: Mapped[str] = mapped_column(
         ForeignKey("participants.id"),
         nullable=False,
     )
-    requested_by_participant_id: Mapped[UUID] = mapped_column(
+    requested_by_participant_id: Mapped[str] = mapped_column(
         ForeignKey("participants.id"),
         nullable=False,
     )

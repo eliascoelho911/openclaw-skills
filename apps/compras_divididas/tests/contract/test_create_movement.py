@@ -13,8 +13,8 @@ from compras_divididas.db.session import get_db_session
 
 
 def seed_two_participants(session: Session) -> tuple[str, str]:
-    participant_a = Participant(code="ana", display_name="Ana", is_active=True)
-    participant_b = Participant(code="bia", display_name="Bia", is_active=True)
+    participant_a = Participant(id="ana", display_name="Ana", is_active=True)
+    participant_b = Participant(id="bia", display_name="Bia", is_active=True)
     session.add_all([participant_a, participant_b])
     session.commit()
     return str(participant_a.id), str(participant_b.id)

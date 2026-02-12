@@ -19,7 +19,7 @@ class ParticipantRepository:
         statement = (
             select(Participant)
             .where(Participant.is_active.is_(True))
-            .order_by(Participant.code.asc())
+            .order_by(Participant.id.asc())
         )
         participants = list(self._session.scalars(statement).all())
         if len(participants) != 2:

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from decimal import Decimal
-from uuid import UUID, uuid4
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -36,19 +36,17 @@ class FakeSession:
 
 
 class FakeParticipantRepository:
-    def __init__(self, participant_ids: tuple[UUID, UUID]) -> None:
+    def __init__(self, participant_ids: tuple[str, str]) -> None:
         self._participant_ids = participant_ids
 
     def list_active_exactly_two(self) -> list[Participant]:
         participant_a = Participant(
-            id=self._participant_ids[0],
-            code="ana",
+            id="ana",
             display_name="Ana",
             is_active=True,
         )
         participant_b = Participant(
-            id=self._participant_ids[1],
-            code="bia",
+            id="bia",
             display_name="Bia",
             is_active=True,
         )
@@ -57,16 +55,14 @@ class FakeParticipantRepository:
 
 @dataclass
 class FakeMovementRepository:
-    duplicate_external_ids: set[tuple[date, UUID, str]]
-
-    def __post_init__(self) -> None:
-        self.movements: list[FinancialMovement] = []
+    duplicate_external_ids: set[tuple[date, str, str]]
+    movements: list[FinancialMovement] = field(default_factory=list)
 
     def has_duplicate_external_id(
         self,
         *,
         competence_month: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
         external_id: str,
     ) -> bool:
         return (
@@ -88,7 +84,7 @@ class FakeMovementRepository:
         self,
         *,
         competence_month: date,
-        payer_participant_id: UUID,
+        payer_participant_id: str,
         external_id: str,
     ) -> FinancialMovement | None:
         for movement in self.movements:
@@ -117,7 +113,7 @@ class FakeMovementRepository:
 
 
 def test_create_movement_rounds_amount_with_half_up() -> None:
-    participant_ids = (uuid4(), uuid4())
+    participant_ids = ("ana", "bia")
     repository = FakeMovementRepository(duplicate_external_ids=set())
     session = FakeSession()
     service = MovementService(
@@ -140,7 +136,7 @@ def test_create_movement_rounds_amount_with_half_up() -> None:
 
 
 def test_create_movement_applies_default_payer_and_occurred_at() -> None:
-    participant_ids = (uuid4(), uuid4())
+    participant_ids = ("ana", "bia")
     repository = FakeMovementRepository(duplicate_external_ids=set())
     service = MovementService(
         movement_repository=repository,
@@ -164,7 +160,7 @@ def test_create_movement_applies_default_payer_and_occurred_at() -> None:
 
 
 def test_create_movement_rejects_duplicate_external_id() -> None:
-    participant_ids = (uuid4(), uuid4())
+    participant_ids = ("ana", "bia")
     repository = FakeMovementRepository(duplicate_external_ids=set())
     service = MovementService(
         movement_repository=repository,
