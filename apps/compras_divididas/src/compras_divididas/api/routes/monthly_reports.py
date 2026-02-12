@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Request
+from fastapi import APIRouter, Depends, Path, Query, Request
 
 from compras_divididas.api.dependencies import (
     get_monthly_report_service,
@@ -22,10 +22,11 @@ def get_monthly_summary(
     year: Annotated[int, Path(ge=2000, le=2100)],
     month: Annotated[int, Path(ge=1, le=12)],
     service: Annotated[MonthlySummaryService, Depends(get_monthly_summary_service)],
+    auto_generate: Annotated[bool, Query()] = False,
 ) -> MonthlySummaryResponse:
     """Return consolidated monthly partial summary."""
 
-    summary = service.get_summary(year=year, month=month)
+    summary = service.get_summary(year=year, month=month, auto_generate=auto_generate)
     return MonthlySummaryResponse.from_projection(summary)
 
 
@@ -35,6 +36,7 @@ def get_monthly_report(
     month: Annotated[int, Path(ge=1, le=12)],
     request: Request,
     service: Annotated[MonthlyReportService, Depends(get_monthly_report_service)],
+    auto_generate: Annotated[bool, Query()] = False,
 ) -> MonthlySummaryResponse:
     """Return consolidated monthly report generated on demand."""
 
@@ -42,5 +44,6 @@ def get_monthly_report(
         year=year,
         month=month,
         request_id=request.headers.get("x-request-id"),
+        auto_generate=auto_generate,
     )
     return MonthlySummaryResponse.from_projection(summary)

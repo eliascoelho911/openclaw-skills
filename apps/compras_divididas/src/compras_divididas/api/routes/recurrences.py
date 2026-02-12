@@ -5,17 +5,25 @@ from __future__ import annotations
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 
-from compras_divididas.api.dependencies import get_recurrence_service
+from compras_divididas.api.dependencies import (
+    get_recurrence_generation_service,
+    get_recurrence_service,
+)
 from compras_divididas.api.schemas.recurrences import (
     CreateRecurrenceRequest,
+    GenerateRecurrencesRequest,
+    GenerateRecurrencesResponse,
     RecurrenceListResponse,
     RecurrenceResponse,
     parse_competence_month,
 )
 from compras_divididas.db.models.recurrence_rule import RecurrenceStatus
 from compras_divididas.domain.errors import InvalidRequestError
+from compras_divididas.services.recurrence_generation_service import (
+    RecurrenceGenerationService,
+)
 from compras_divididas.services.recurrence_service import (
     CreateRecurrenceInput,
     ListRecurrenceInput,
@@ -23,6 +31,10 @@ from compras_divididas.services.recurrence_service import (
 )
 
 router = APIRouter(prefix="/recurrences", tags=["Recurrences"])
+monthly_generation_router = APIRouter(
+    prefix="/months",
+    tags=["Monthly Recurrence Generation"],
+)
 
 
 @router.post(
@@ -101,4 +113,35 @@ def list_recurrences(
         total=total,
         limit=limit,
         offset=offset,
+    )
+
+
+@monthly_generation_router.post(
+    "/{year}/{month}/recurrences/generate",
+    response_model=GenerateRecurrencesResponse,
+)
+def generate_recurrences_for_month(
+    year: Annotated[int, Path(ge=2000, le=2100)],
+    month: Annotated[int, Path(ge=1, le=12)],
+    service: Annotated[
+        RecurrenceGenerationService,
+        Depends(get_recurrence_generation_service),
+    ],
+    payload: Annotated[
+        GenerateRecurrencesRequest,
+        Body(default_factory=GenerateRecurrencesRequest),
+    ],
+) -> GenerateRecurrencesResponse:
+    """Generate monthly recurrence movements idempotently."""
+
+    competence_month = date(year=year, month=month, day=1)
+    result = service.generate_for_month(
+        competence_month=competence_month,
+        requested_by_participant_id=payload.requested_by_participant_id,
+        include_blocked_details=payload.include_blocked_details,
+        dry_run=payload.dry_run,
+    )
+    return GenerateRecurrencesResponse.from_result(
+        result,
+        include_blocked_details=payload.include_blocked_details,
     )

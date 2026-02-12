@@ -81,20 +81,20 @@ description: "Task list for recurring transactions implementation"
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Escrever contract test de `POST /v1/months/{year}/{month}/recurrences/generate` com contadores e idempotencia em `apps/compras_divididas/tests/contract/test_generate_recurrences.py`
-- [ ] T023 [P] [US2] Atualizar contract tests de `GET /v1/months/{year}/{month}/summary` e `GET /v1/months/{year}/{month}/report` com `auto_generate` em `apps/compras_divididas/tests/contract/test_get_monthly_summary.py` e `apps/compras_divididas/tests/contract/test_get_monthly_report.py`
-- [ ] T024 [P] [US2] Escrever unit tests de ajuste de dia (31->28/29) e transicoes de ocorrencia em `apps/compras_divididas/tests/unit/test_recurrence_schedule.py`
-- [ ] T025 [US2] Escrever integration test de retomada apos falha parcial sem duplicar lancamentos em `apps/compras_divididas/tests/integration/test_recurrence_generation_resume.py`
+- [x] T022 [P] [US2] Escrever contract test de `POST /v1/months/{year}/{month}/recurrences/generate` com contadores e idempotencia em `apps/compras_divididas/tests/contract/test_generate_recurrences.py`
+- [x] T023 [P] [US2] Atualizar contract tests de `GET /v1/months/{year}/{month}/summary` e `GET /v1/months/{year}/{month}/report` com `auto_generate` em `apps/compras_divididas/tests/contract/test_get_monthly_summary.py` e `apps/compras_divididas/tests/contract/test_get_monthly_report.py`
+- [x] T024 [P] [US2] Escrever unit tests de ajuste de dia (31->28/29) e transicoes de ocorrencia em `apps/compras_divididas/tests/unit/test_recurrence_schedule.py`
+- [x] T025 [US2] Escrever integration test de retomada apos falha parcial sem duplicar lancamentos em `apps/compras_divididas/tests/integration/test_recurrence_generation_resume.py`
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Implementar selecao de elegiveis com lock em lote (`FOR UPDATE SKIP LOCKED`) em `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`
-- [ ] T027 [US2] Implementar orquestracao de geracao com contadores `generated/ignored/blocked/failed` em `apps/compras_divididas/src/compras_divididas/services/recurrence_generation_service.py`
-- [ ] T028 [US2] Implementar endpoint `POST /v1/months/{year}/{month}/recurrences/generate` em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`
-- [ ] T029 [US2] Adicionar query param opcional `auto_generate` nos handlers de resumo/relatorio em `apps/compras_divididas/src/compras_divididas/api/routes/monthly_reports.py`
-- [ ] T030 [US2] Integrar pre-geracao idempotente nos servicos mensais em `apps/compras_divididas/src/compras_divididas/services/monthly_summary_service.py` e `apps/compras_divididas/src/compras_divididas/services/monthly_report_service.py`
-- [ ] T031 [US2] Atualizar MCP para repassar `auto_generate` em `apps/compras_divididas/src/compras_divididas/mcp/server.py` e cobrir no teste `apps/compras_divididas/tests/unit/test_mcp_server.py`
-- [ ] T032 [US2] Atualizar skill MCP com novo parametro em `skills/compras-divididas-mcp/SKILL.md`, `skills/compras-divididas-mcp/references/api_reference.md`, `skills/compras-divididas-mcp/references/response_templates.md` e `skills/compras-divididas-mcp/scripts/render_tool_response.py`
+- [x] T026 [US2] Implementar selecao de elegiveis com lock em lote (`FOR UPDATE SKIP LOCKED`) em `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`
+- [x] T027 [US2] Implementar orquestracao de geracao com contadores `generated/ignored/blocked/failed` em `apps/compras_divididas/src/compras_divididas/services/recurrence_generation_service.py`
+- [x] T028 [US2] Implementar endpoint `POST /v1/months/{year}/{month}/recurrences/generate` em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`
+- [x] T029 [US2] Adicionar query param opcional `auto_generate` nos handlers de resumo/relatorio em `apps/compras_divididas/src/compras_divididas/api/routes/monthly_reports.py`
+- [x] T030 [US2] Integrar pre-geracao idempotente nos servicos mensais em `apps/compras_divididas/src/compras_divididas/services/monthly_summary_service.py` e `apps/compras_divididas/src/compras_divididas/services/monthly_report_service.py`
+- [x] T031 [US2] Atualizar MCP para repassar `auto_generate` em `apps/compras_divididas/src/compras_divididas/mcp/server.py` e cobrir no teste `apps/compras_divididas/tests/unit/test_mcp_server.py`
+- [x] T032 [US2] Atualizar skill MCP com novo parametro em `skills/compras-divididas-mcp/SKILL.md`, `skills/compras-divididas-mcp/references/api_reference.md`, `skills/compras-divididas-mcp/references/response_templates.md` e `skills/compras-divididas-mcp/scripts/render_tool_response.py`
 
 **Checkpoint**: US2 funcional com geracao idempotente, retomada segura e auto-geracao integrada.
 

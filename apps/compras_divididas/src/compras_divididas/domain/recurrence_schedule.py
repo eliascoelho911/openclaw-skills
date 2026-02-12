@@ -43,3 +43,15 @@ def scheduled_date_for_month(*, competence_month: date, reference_day: int) -> d
     _, month_last_day = calendar.monthrange(normalized.year, normalized.month)
     day = min(reference_day, month_last_day)
     return date(year=normalized.year, month=normalized.month, day=day)
+
+
+def can_transition_occurrence_status(*, current: str, target: str) -> bool:
+    """Return whether one recurrence occurrence status transition is allowed."""
+
+    allowed_transitions = {
+        "pending": {"generated", "blocked", "failed"},
+        "failed": {"pending"},
+        "blocked": set(),
+        "generated": set(),
+    }
+    return target in allowed_transitions.get(current, set())

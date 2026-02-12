@@ -39,6 +39,13 @@ def _transfer_sentence(data: dict[str, Any]) -> str:
     return f"R$ {amount} de {debtor} para {creditor}."
 
 
+def _generation_note(data: dict[str, Any]) -> str:
+    auto_generate = data.get("auto_generate")
+    if auto_generate is True:
+        return "Inclui geracao automatica de recorrencias desta competencia."
+    return "Considera somente movimentacoes ja registradas."
+
+
 def _extract_error(data: dict[str, Any]) -> tuple[str, str]:
     code = _get(data, "code", "UNKNOWN_ERROR")
     message = _get(data, "message", "Unknown error")
@@ -53,9 +60,15 @@ def _extract_error(data: dict[str, Any]) -> tuple[str, str]:
 
 def _suggested_action(code: str) -> str:
     mapping = {
-        "DUPLICATE_EXTERNAL_ID": "Use list_movements para confirmar duplicidade antes de reenviar.",
-        "PURCHASE_NOT_FOUND": "Localize a compra com list_movements e envie original_purchase_id correto.",
-        "REFUND_LIMIT_EXCEEDED": "Ajuste o valor do estorno para nao exceder o total da compra.",
+        "DUPLICATE_EXTERNAL_ID": (
+            "Use list_movements para confirmar duplicidade antes de reenviar."
+        ),
+        "PURCHASE_NOT_FOUND": (
+            "Localize a compra com list_movements e envie original_purchase_id correto."
+        ),
+        "REFUND_LIMIT_EXCEEDED": (
+            "Ajuste o valor do estorno para nao exceder o total da compra."
+        ),
         "INVALID_REQUEST": "Revise campos obrigatorios e formato dos valores.",
     }
     return mapping.get(code, "Revise os parametros e tente novamente.")
@@ -170,9 +183,11 @@ def _monthly_common(emoji: str, title: str, data: dict[str, Any], footer: str) -
             p2 = participants[1]
 
     transfer_sentence = _transfer_sentence(data)
+    generation_note = _generation_note(data)
 
     lines = [
         f"{emoji} {title} {competence_month}",
+        f"- {generation_note}",
         f"- Bruto: R$ {total_gross}",
         f"- Estornos: R$ {total_refunds}",
         f"- Liquido: R$ {total_net}",

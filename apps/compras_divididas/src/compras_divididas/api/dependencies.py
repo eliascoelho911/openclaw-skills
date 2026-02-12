@@ -58,9 +58,14 @@ def get_monthly_summary_service(
 ) -> MonthlySummaryService:
     """Build monthly summary service with query/participant repositories."""
 
+    recurrence_generation_service = RecurrenceGenerationService(
+        recurrence_repository=RecurrenceRepository(session),
+        session=session,
+    )
     return MonthlySummaryService(
         participant_repository=ParticipantRepository(session),
         movement_query_repository=MovementQueryRepository(session),
+        recurrence_generation_service=recurrence_generation_service,
     )
 
 
@@ -69,9 +74,14 @@ def get_monthly_report_service(
 ) -> MonthlyReportService:
     """Build monthly report service reusing summary aggregation service."""
 
+    recurrence_generation_service = RecurrenceGenerationService(
+        recurrence_repository=RecurrenceRepository(session),
+        session=session,
+    )
     summary_service = MonthlySummaryService(
         participant_repository=ParticipantRepository(session),
         movement_query_repository=MovementQueryRepository(session),
+        recurrence_generation_service=recurrence_generation_service,
     )
     return MonthlyReportService(monthly_summary_service=summary_service)
 
@@ -97,8 +107,11 @@ def get_recurrence_service(
 
 
 def get_recurrence_generation_service(
-    _: Annotated[Session, Depends(get_db_session)],
+    session: Annotated[Session, Depends(get_db_session)],
 ) -> RecurrenceGenerationService:
     """Build recurrence generation service."""
 
-    return RecurrenceGenerationService()
+    return RecurrenceGenerationService(
+        recurrence_repository=RecurrenceRepository(session),
+        session=session,
+    )

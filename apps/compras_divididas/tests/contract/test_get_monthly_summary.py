@@ -91,3 +91,29 @@ def test_openapi_contains_monthly_summary_path() -> None:
     response_codes = set(get_operation["responses"].keys())
 
     assert "200" in response_codes
+
+
+def test_get_monthly_summary_supports_auto_generate(
+    client: TestClient, participants: tuple[str, str]
+) -> None:
+    participant_a, _ = participants
+    create_response = client.post(
+        "/v1/recurrences",
+        json={
+            "description": "Internet",
+            "amount": "120.00",
+            "payer_participant_id": participant_a,
+            "requested_by_participant_id": participant_a,
+            "split_config": {"mode": "equal"},
+            "reference_day": 31,
+            "start_competence_month": "2026-02",
+        },
+    )
+    assert create_response.status_code == 201
+
+    response = client.get("/v1/months/2026/2/summary?auto_generate=true")
+    assert response.status_code == 200
+
+    body = response.json()
+    assert body["total_gross"] == "120.00"
+    assert body["total_net"] == "120.00"

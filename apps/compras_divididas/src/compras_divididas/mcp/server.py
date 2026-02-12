@@ -194,18 +194,37 @@ def create_mcp_server(
         )
 
     @mcp.tool
-    async def get_monthly_summary(year: int, month: int) -> object:
+    async def get_monthly_summary(
+        year: int,
+        month: int,
+        auto_generate: bool = False,
+    ) -> object:
         """Return monthly summary projection for a competence month."""
 
-        return await api_requester.request("GET", f"/v1/months/{year}/{month}/summary")
+        params: dict[str, ParamValue] = {}
+        if auto_generate:
+            params["auto_generate"] = True
+        return await api_requester.request(
+            "GET",
+            f"/v1/months/{year}/{month}/summary",
+            params=params if params else None,
+        )
 
     @mcp.tool
     async def get_monthly_report(
         year: int,
         month: int,
+        auto_generate: bool = False,
     ) -> object:
         """Return monthly report projection for a competence month."""
 
-        return await api_requester.request("GET", f"/v1/months/{year}/{month}/report")
+        params: dict[str, ParamValue] = {}
+        if auto_generate:
+            params["auto_generate"] = True
+        return await api_requester.request(
+            "GET",
+            f"/v1/months/{year}/{month}/report",
+            params=params if params else None,
+        )
 
     return mcp

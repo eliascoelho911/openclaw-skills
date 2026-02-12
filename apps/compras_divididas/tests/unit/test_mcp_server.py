@@ -147,3 +147,57 @@ def test_build_api_error_uses_contract_payload_shape() -> None:
 
     assert "DUPLICATE_EXTERNAL_ID" in error_message
     assert "details={'external_id': 'msg-001'}" in error_message
+
+
+def test_get_monthly_summary_tool_forwards_auto_generate() -> None:
+    async def scenario() -> dict[str, object]:
+        fake_requester = FakeRequester(
+            responses={("GET", "/v1/months/2026/2/summary"): {"ok": True}}
+        )
+        server = create_mcp_server(
+            api_base_url="http://example.test",
+            timeout_seconds=1,
+            requester=fake_requester,
+        )
+        async with Client(server) as client:
+            await client.call_tool(
+                "get_monthly_summary",
+                {"year": 2026, "month": 2, "auto_generate": True},
+            )
+        return fake_requester.calls[0]
+
+    recorded_call = asyncio.run(scenario())
+
+    assert recorded_call == {
+        "method": "GET",
+        "path": "/v1/months/2026/2/summary",
+        "params": {"auto_generate": True},
+        "json_body": None,
+    }
+
+
+def test_get_monthly_report_tool_forwards_auto_generate() -> None:
+    async def scenario() -> dict[str, object]:
+        fake_requester = FakeRequester(
+            responses={("GET", "/v1/months/2026/2/report"): {"ok": True}}
+        )
+        server = create_mcp_server(
+            api_base_url="http://example.test",
+            timeout_seconds=1,
+            requester=fake_requester,
+        )
+        async with Client(server) as client:
+            await client.call_tool(
+                "get_monthly_report",
+                {"year": 2026, "month": 2, "auto_generate": True},
+            )
+        return fake_requester.calls[0]
+
+    recorded_call = asyncio.run(scenario())
+
+    assert recorded_call == {
+        "method": "GET",
+        "path": "/v1/months/2026/2/report",
+        "params": {"auto_generate": True},
+        "json_body": None,
+    }

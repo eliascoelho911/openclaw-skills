@@ -12,6 +12,10 @@ from sqlalchemy import Select, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from compras_divididas.db.models.financial_movement import (
+    FinancialMovement,
+    MovementType,
+)
 from compras_divididas.db.models.recurrence_event import (
     RecurrenceEvent,
     RecurrenceEventType,
@@ -223,6 +227,56 @@ class RecurrenceRepository:
             msg = "Failed to load occurrence after idempotent insert attempt."
             raise RuntimeError(msg)
         return existing, False
+
+    def get_generated_movement_by_external_id(
+        self,
+        *,
+        competence_month: date,
+        payer_participant_id: str,
+        external_id: str,
+    ) -> FinancialMovement | None:
+        """Fetch one generated movement by deterministic external id."""
+
+        statement = select(FinancialMovement).where(
+            FinancialMovement.competence_month == competence_month,
+            FinancialMovement.payer_participant_id == payer_participant_id,
+            FinancialMovement.external_id == external_id,
+            FinancialMovement.movement_type == MovementType.PURCHASE,
+        )
+        return self._session.scalar(statement)
+
+    def add_generated_movement(
+        self,
+        *,
+        amount: Decimal,
+        description: str,
+        competence_month: date,
+        scheduled_date: date,
+        payer_participant_id: str,
+        requested_by_participant_id: str,
+        external_id: str,
+    ) -> FinancialMovement:
+        """Create one purchase movement generated from recurrence rule."""
+
+        movement = FinancialMovement(
+            movement_type=MovementType.PURCHASE,
+            amount=amount,
+            description=description,
+            occurred_at=datetime(
+                year=scheduled_date.year,
+                month=scheduled_date.month,
+                day=scheduled_date.day,
+                tzinfo=UTC,
+            ),
+            competence_month=competence_month,
+            payer_participant_id=payer_participant_id,
+            requested_by_participant_id=requested_by_participant_id,
+            external_id=external_id,
+            original_purchase_id=None,
+        )
+        self._session.add(movement)
+        self._session.flush()
+        return movement
 
     def add_event(
         self,

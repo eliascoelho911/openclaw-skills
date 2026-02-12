@@ -29,6 +29,19 @@ class MovementQueryRepositoryProtocol(Protocol):
     ) -> dict[str, Decimal]: ...
 
 
+class RecurrenceGenerationServiceProtocol(Protocol):
+    """Recurrence generation contract consumed by summary service."""
+
+    def generate_for_month(
+        self,
+        *,
+        competence_month: date,
+        requested_by_participant_id: str | None,
+        include_blocked_details: bool,
+        dry_run: bool,
+    ) -> object: ...
+
+
 @dataclass(frozen=True, slots=True)
 class ParticipantBalance:
     """Computed balance line for one participant."""
@@ -104,12 +117,29 @@ class MonthlySummaryService:
         *,
         participant_repository: ParticipantRepositoryProtocol,
         movement_query_repository: MovementQueryRepositoryProtocol,
+        recurrence_generation_service: RecurrenceGenerationServiceProtocol
+        | None = None,
     ) -> None:
         self._participant_repository = participant_repository
         self._movement_query_repository = movement_query_repository
+        self._recurrence_generation_service = recurrence_generation_service
 
-    def get_summary(self, *, year: int, month: int) -> MonthlySummaryProjection:
+    def get_summary(
+        self,
+        *,
+        year: int,
+        month: int,
+        auto_generate: bool = False,
+    ) -> MonthlySummaryProjection:
         competence_month = date(year=year, month=month, day=1)
+        if auto_generate and self._recurrence_generation_service is not None:
+            self._recurrence_generation_service.generate_for_month(
+                competence_month=competence_month,
+                requested_by_participant_id=None,
+                include_blocked_details=False,
+                dry_run=False,
+            )
+
         participants = self._participant_repository.list_active_exactly_two()
         gross, refunds, net = self._movement_query_repository.get_monthly_totals(
             competence_month

@@ -14,8 +14,8 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 3. Select the right tool for the user's intent:
    - Register a purchase or refund: `create_movement`
    - Find a purchase for a refund: `list_movements`
-   - Check the month partials: `get_monthly_summary`
-   - Get the on-demand consolidated report: `get_monthly_report`
+   - Check the month partials: `get_monthly_summary` (`auto_generate` optional)
+   - Get the on-demand consolidated report: `get_monthly_report` (`auto_generate` optional)
 4. Validate the result using canonical fields (`id`, `competence_month`, `total_net`, `transfer`).
 5. Handle failures using the playbook in `references/api_reference.md`.
 6. After each tool call, always answer with the PT-BR template from `references/response_templates.md`.
@@ -48,6 +48,11 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 1. Call `get_monthly_summary` to validate the partials.
 2. Call `get_monthly_report` for the on-demand consolidated view (same response schema).
 3. Communicate `transfer.amount`, `transfer.debtor_participant_id`, and `transfer.creditor_participant_id`.
+
+### Auto-generate recurrent entries before consultation
+
+1. When the user asks to include recurring entries automatically, call `get_monthly_summary` or `get_monthly_report` with `auto_generate=true`.
+2. Use `auto_generate=false` (default) when the user wants to inspect only existing posted movements.
 
 ## Detailed reference
 

@@ -12,6 +12,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from compras_divididas.api.schemas.participants import ParticipantId
 from compras_divididas.db.models.recurrence_rule import RecurrenceRule
 from compras_divididas.domain.money import format_money
+from compras_divididas.services.recurrence_generation_service import (
+    BlockedRecurrenceItem,
+    GenerateRecurrencesResult,
+)
 
 RecurrencePeriodicity = Literal["monthly"]
 RecurrenceStatus = Literal["active", "paused", "ended"]
@@ -167,4 +171,68 @@ class RecurrenceListResponse(BaseModel):
             total=total,
             limit=limit,
             offset=offset,
+        )
+
+
+class GenerateRecurrencesRequest(BaseModel):
+    """Payload for monthly recurrence generation."""
+
+    requested_by_participant_id: ParticipantId | None = None
+    dry_run: bool = False
+    include_blocked_details: bool = True
+
+
+class BlockedRecurrenceItemResponse(BaseModel):
+    """Blocked recurrence detail returned by generation endpoint."""
+
+    recurrence_id: UUID
+    code: str
+    message: str
+
+    @classmethod
+    def from_model(
+        cls,
+        item: BlockedRecurrenceItem,
+    ) -> BlockedRecurrenceItemResponse:
+        return cls(
+            recurrence_id=item.recurrence_id,
+            code=item.code,
+            message=item.message,
+        )
+
+
+class GenerateRecurrencesResponse(BaseModel):
+    """Response payload for monthly recurrence generation execution."""
+
+    competence_month: str = Field(pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$")
+    processed_rules: int = Field(ge=0)
+    generated_count: int = Field(ge=0)
+    ignored_count: int = Field(ge=0)
+    blocked_count: int = Field(ge=0)
+    failed_count: int = Field(ge=0)
+    blocked_items: list[BlockedRecurrenceItemResponse] = Field(default_factory=list)
+
+    @classmethod
+    def from_result(
+        cls,
+        result: GenerateRecurrencesResult,
+        *,
+        include_blocked_details: bool,
+    ) -> GenerateRecurrencesResponse:
+        blocked_items = (
+            [
+                BlockedRecurrenceItemResponse.from_model(item)
+                for item in result.blocked_items
+            ]
+            if include_blocked_details
+            else []
+        )
+        return cls(
+            competence_month=format_competence_month(result.competence_month),
+            processed_rules=result.processed_rules,
+            generated_count=result.generated_count,
+            ignored_count=result.ignored_count,
+            blocked_count=result.blocked_count,
+            failed_count=result.failed_count,
+            blocked_items=blocked_items,
         )

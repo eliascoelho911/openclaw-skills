@@ -83,6 +83,7 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 
 ```text
 📊 Resumo mensal {{competence_month}}
+- {{generation_note}}
 - Bruto: R$ {{total_gross}}
 - Estornos: R$ {{total_refunds}}
 - Liquido: R$ {{total_net}}
@@ -106,6 +107,7 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 
 ```text
 📄 Relatorio consolidado {{competence_month}}
+- {{generation_note}}
 - Bruto: R$ {{total_gross}}
 - Estornos: R$ {{total_refunds}}
 - Liquido: R$ {{total_net}}
@@ -130,3 +132,6 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 - `transfer_sentence`:
   - se `amount == "0.00"` ou IDs nulos: `Sem transferencia no mes.`
   - caso contrario: `R$ {amount} de {debtor} para {creditor}.`
+- `generation_note`:
+  - quando `auto_generate=true`: `Inclui geracao automatica de recorrencias desta competencia.`
+  - caso contrario: `Considera somente movimentacoes ja registradas.`

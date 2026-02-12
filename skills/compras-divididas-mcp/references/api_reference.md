@@ -234,6 +234,8 @@ Return the partial consolidation for the competence month.
 
 - `year` (int, 2000..2100)
 - `month` (int, 1..12)
+- `auto_generate` (bool, optional, default `false`)
+  - when `true`, API runs idempotent recurrence generation before computing the summary
 
 ### Output contract (`MonthlySummaryResponse`)
 
@@ -258,7 +260,8 @@ Return the partial consolidation for the competence month.
   "tool": "get_monthly_summary",
   "arguments": {
     "year": 2026,
-    "month": 2
+    "month": 2,
+    "auto_generate": true
   }
 }
 ```
@@ -278,6 +281,8 @@ Return the on-demand consolidated monthly report, with the same schema as `get_m
 
 - `year` (int, 2000..2100)
 - `month` (int, 1..12)
+- `auto_generate` (bool, optional, default `false`)
+  - when `true`, API runs idempotent recurrence generation before computing the report
 
 ### Output contract
 
@@ -290,7 +295,8 @@ Return the on-demand consolidated monthly report, with the same schema as `get_m
   "tool": "get_monthly_report",
   "arguments": {
     "year": 2026,
-    "month": 2
+    "month": 2,
+    "auto_generate": true
   }
 }
 ```
