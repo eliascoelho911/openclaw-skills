@@ -93,6 +93,16 @@ curl -X POST "http://localhost:8000/v1/months/2026/2/recurrences/generate" \
 Resposta esperada (200): payload com contadores `generated_count`,
 `ignored_count`, `blocked_count`, `failed_count`.
 
+### 6.3.1 Consultar resumo/relatorio com auto-geracao
+
+```bash
+curl "http://localhost:8000/v1/months/2026/2/summary?auto_generate=true"
+curl "http://localhost:8000/v1/months/2026/2/report?auto_generate=true"
+```
+
+Com `auto_generate=true`, a API executa geracao idempotente da competencia antes
+de montar o payload de consulta.
+
 ### 6.4 Pausar recorrencia
 
 ```bash
@@ -185,3 +195,14 @@ Executar cenario de carga para confirmar:
 - cadastro/edicao/alteracao de status <=2s p95
 - geracao de 1.000 recorrencias <=30s
 - consulta mensal com 2.000 lancamentos <=2s p95
+
+## 10) Validacao MCP/Skill
+
+Ao implementar a feature, validar tambem a camada MCP/skill:
+
+1. Atualizar `get_monthly_summary` e `get_monthly_report` do MCP para aceitar
+   `auto_generate` opcional.
+2. Atualizar `skills/compras-divididas-mcp/SKILL.md` e referencias para
+   documentar o novo comportamento.
+3. Garantir teste unitario no MCP confirmando repasse de `auto_generate` para o
+   endpoint REST.

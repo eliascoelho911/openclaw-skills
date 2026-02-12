@@ -264,6 +264,68 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /v1/months/{year}/{month}/summary:
+    get:
+      tags: [Monthly Recurrence Generation]
+      summary: Return monthly summary, optionally auto-generating recurrences
+      operationId: getMonthlySummary
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Month"
+        - in: query
+          name: auto_generate
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: |
+            When true, run idempotent recurrence generation for the competence
+            before computing the monthly summary.
+      responses:
+        "200":
+          description: Monthly summary response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlySummaryResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/months/{year}/{month}/report:
+    get:
+      tags: [Monthly Recurrence Generation]
+      summary: Return monthly report, optionally auto-generating recurrences
+      operationId: getMonthlyReport
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Month"
+        - in: query
+          name: auto_generate
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: |
+            When true, run idempotent recurrence generation for the competence
+            before computing the monthly report.
+      responses:
+        "200":
+          description: Monthly report response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonthlySummaryResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   parameters:
     Year:
@@ -552,6 +614,61 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BlockedRecurrenceItem"
+
+    MonthlyParticipantBalance:
+      type: object
+      required: [participant_id, paid_total, share_due, net_balance]
+      properties:
+        participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        paid_total:
+          $ref: "#/components/schemas/Money"
+        share_due:
+          $ref: "#/components/schemas/Money"
+        net_balance:
+          $ref: "#/components/schemas/Money"
+
+    MonthlyTransfer:
+      type: object
+      required: [amount, debtor_participant_id, creditor_participant_id]
+      properties:
+        amount:
+          $ref: "#/components/schemas/Money"
+        debtor_participant_id:
+          allOf:
+            - $ref: "#/components/schemas/ParticipantId"
+          nullable: true
+        creditor_participant_id:
+          allOf:
+            - $ref: "#/components/schemas/ParticipantId"
+          nullable: true
+
+    MonthlySummaryResponse:
+      type: object
+      required:
+        - competence_month
+        - total_gross
+        - total_refunds
+        - total_net
+        - participants
+        - transfer
+      properties:
+        competence_month:
+          $ref: "#/components/schemas/CompetenceMonth"
+        total_gross:
+          $ref: "#/components/schemas/Money"
+        total_refunds:
+          $ref: "#/components/schemas/Money"
+        total_net:
+          $ref: "#/components/schemas/Money"
+        participants:
+          type: array
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: "#/components/schemas/MonthlyParticipantBalance"
+        transfer:
+          $ref: "#/components/schemas/MonthlyTransfer"
 
     ErrorResponse:
       type: object

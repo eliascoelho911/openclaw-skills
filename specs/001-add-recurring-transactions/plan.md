@@ -12,7 +12,12 @@ O desenho tecnico adota tres agregados novos (`recurrence_rule`,
 `recurrence_occurrence`, `recurrence_event`) para garantir idempotencia por
 recorrencia+competencia, rastreabilidade funcional e retomada segura em
 reexecucoes apos falha parcial, reutilizando as regras ja consolidadas de
-participantes, competencia e criacao de lancamentos.
+participantes, competencia e criacao de lancamentos. O plano inclui um atalho
+de UX nos endpoints `GET /v1/months/{year}/{month}/summary` e
+`GET /v1/months/{year}/{month}/report` com query param opcional
+`auto_generate=true` para disparar geracao idempotente de recorrencias antes do
+calculo da resposta, incluindo integracao no servidor MCP e atualizacao da skill
+`skills/compras-divididas-mcp` para expor o novo comportamento.
 
 ## Technical Context
 
@@ -25,6 +30,29 @@ participantes, competencia e criacao de lancamentos.
 **Performance Goals**: cadastro/edicao/alteracao de status <=2s p95 com 100 usuarios ativos; geracao de ate 1.000 recorrencias elegiveis <=30s com taxa de falha <1%; consulta mensal com ate 2.000 lancamentos <=2s p95  
 **Constraints**: recorrencia mensal apenas na v1; sem exclusao fisica (apenas pausar/reativar/encerrar); last-write-wins para edicoes concorrentes; bloquear geracao com dados obrigatorios inconsistentes; impedir alteracao de `start_competence_month` apos primeira geracao; ajustar dia inexistente para ultimo dia valido do mes; mensagens de erro acionaveis e em ingles  
 **Scale/Scope**: ate 1.000 recorrencias elegiveis por competencia e historico minimo de 24 meses, mantendo compatibilidade com fluxos atuais de movimentos e consolidacao mensal
+
+### API decision adicional
+
+- `summary` e `report` passam a aceitar `auto_generate` (boolean, default
+  `false`).
+- Com `auto_generate=true`, o backend executa a mesma logica idempotente de
+  geracao mensal antes de montar o payload.
+- Falhas por dados de recorrencia bloqueada nao derrubam o endpoint de consulta;
+  itens bloqueados contam como ignorados na geracao interna e podem ser expostos
+  em metadados de observabilidade.
+
+### Integracao MCP e Skill
+
+- Atualizar `apps/compras_divididas/src/compras_divididas/mcp/server.py` para
+  aceitar `auto_generate` em `get_monthly_summary` e `get_monthly_report`.
+- Preservar backward compatibility no MCP: `auto_generate` opcional com default
+  `false`.
+- Adicionar cobertura em `apps/compras_divididas/tests/unit/test_mcp_server.py`
+  para garantir repasse correto do query param para API REST.
+- Atualizar documentacao da skill em `skills/compras-divididas-mcp/`:
+  `SKILL.md`, `references/api_reference.md`,
+  `references/response_templates.md` e `scripts/render_tool_response.py` para
+  refletir o novo parametro e orientar quando usar no fluxo mensal.
 
 ## Constitution Check
 
@@ -102,6 +130,8 @@ participantes, competencia e criacao de lancamentos.
 │   │   └── recurrence_rule.py                 # novo
 │   ├── domain/
 │   │   └── recurrence_schedule.py             # novo
+│   ├── mcp/
+│   │   └── server.py                          # atualizar (auto_generate)
 │   ├── repositories/
 │   │   ├── movement_repository.py
 │   │   └── recurrence_repository.py           # novo
@@ -117,8 +147,17 @@ participantes, competencia e criacao de lancamentos.
     ├── integration/
     │   └── test_recurrence_generation_resume.py # novo
     └── unit/
+        ├── test_mcp_server.py                 # atualizar
         ├── test_recurrence_schedule.py        # novo
         └── test_recurrence_service.py         # novo
+
+/home/elias/workspace/openclaw-skills/skills/compras-divididas-mcp/
+├── SKILL.md                                   # atualizar
+├── references/
+│   ├── api_reference.md                       # atualizar
+│   └── response_templates.md                  # atualizar
+└── scripts/
+    └── render_tool_response.py                # atualizar
 
 /home/elias/workspace/openclaw-skills/packages/common/src/shared/
 /home/elias/workspace/openclaw-skills/tests/

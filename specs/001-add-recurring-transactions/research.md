@@ -110,3 +110,14 @@ existente.
   Budgets) e cobre os riscos principais da feature.
 - **Alternatives considered**: Apenas integration tests (feedback mais lento) ou
   apenas teste manual de carga (sem repetibilidade).
+
+### 10) Integracao MCP e skill operacional
+
+- **Decision**: Estender as ferramentas MCP `get_monthly_summary` e
+  `get_monthly_report` com parametro opcional `auto_generate`, e atualizar a
+  skill `skills/compras-divididas-mcp` para refletir esse fluxo.
+- **Rationale**: Mantem alinhamento entre API, MCP e instrucoes operacionais da
+  equipe/assistentes, evitando divergencia de comportamento entre chamada REST e
+  uso da skill.
+- **Alternatives considered**: Manter apenas API atualizada e deixar skill/MCP
+  para depois (gera documentacao defasada e risco de uso incorreto em operacao).
