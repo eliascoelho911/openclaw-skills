@@ -1,51 +1,17 @@
 from __future__ import annotations
 
-from collections.abc import Generator
 from datetime import date
 from decimal import Decimal
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session, sessionmaker
 
 from compras_divididas.api.app import create_app
-from compras_divididas.db.models.participant import Participant
 from compras_divididas.db.models.recurrence_rule import (
     RecurrencePeriodicity,
     RecurrenceRule,
     RecurrenceStatus,
 )
-from compras_divididas.db.session import get_db_session
-
-
-def seed_two_participants(session: Session) -> tuple[str, str]:
-    participant_a = Participant(id="ana", display_name="Ana", is_active=True)
-    participant_b = Participant(id="bia", display_name="Bia", is_active=True)
-    session.add_all([participant_a, participant_b])
-    session.commit()
-    return str(participant_a.id), str(participant_b.id)
-
-
-@pytest.fixture
-def client(
-    sqlite_session_factory: sessionmaker[Session],
-) -> Generator[TestClient, None, None]:
-    app = create_app()
-
-    def override_get_db_session() -> Generator[Session, None, None]:
-        with sqlite_session_factory() as session:
-            yield session
-
-    app.dependency_overrides[get_db_session] = override_get_db_session
-    with TestClient(app) as test_client:
-        yield test_client
-
-
-@pytest.fixture
-def participants(sqlite_session_factory: sessionmaker[Session]) -> tuple[str, str]:
-    with sqlite_session_factory() as session:
-        participant_a, participant_b = seed_two_participants(session)
-    return participant_a, participant_b
 
 
 def test_list_recurrences_returns_filtered_paginated_response(

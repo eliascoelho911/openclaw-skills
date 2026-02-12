@@ -47,10 +47,29 @@ Endpoints principais:
 - `GET /v1/participants`
 - `GET /v1/movements`
 - `POST /v1/movements`
+- `GET /v1/recurrences`
+- `POST /v1/recurrences`
+- `PATCH /v1/recurrences/{recurrence_id}`
+- `POST /v1/recurrences/{recurrence_id}/pause`
+- `POST /v1/recurrences/{recurrence_id}/reactivate`
+- `POST /v1/recurrences/{recurrence_id}/end`
+- `POST /v1/months/{year}/{month}/recurrences/generate`
 - `GET /v1/months/{year}/{month}/summary`
 - `GET /v1/months/{year}/{month}/report`
 
 Swagger: `http://localhost:8000/docs`
+
+## Fluxo de recorrencias (manual)
+
+1. Crie uma recorrencia mensal com `POST /v1/recurrences`.
+2. Gere lancamentos da competencia com `POST /v1/months/{year}/{month}/recurrences/generate`.
+3. Consulte consolidado mensal com:
+   - `GET /v1/months/{year}/{month}/summary?auto_generate=true`
+   - `GET /v1/months/{year}/{month}/report?auto_generate=true`
+4. Gerencie ciclo de vida com `PATCH`, `pause`, `reactivate` e `end`.
+
+Com `auto_generate=true`, resumo e relatorio executam geracao idempotente antes da
+consulta para evitar mes sem lancamentos recorrentes.
 
 ## Execucao do servidor MCP
 

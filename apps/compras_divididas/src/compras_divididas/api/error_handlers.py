@@ -81,7 +81,17 @@ async def handle_integrity_error(_: Request, exc: IntegrityError) -> JSONRespons
         )
 
     if "uq_recurrence_occurrences_rule_competence" in error_text:
-        duplicate_occurrence_error = DuplicateRecurrenceOccurrenceError()
+        duplicate_occurrence_error = DuplicateRecurrenceOccurrenceError(
+            message=compose_error_message(
+                cause=(
+                    "An occurrence already exists for this recurrence and competence."
+                ),
+                action=(
+                    "Treat this operation as idempotent or use another "
+                    "competence month."
+                ),
+            )
+        )
         return JSONResponse(
             status_code=duplicate_occurrence_error.status_code,
             content=_error_payload(
@@ -92,7 +102,14 @@ async def handle_integrity_error(_: Request, exc: IntegrityError) -> JSONRespons
         )
 
     if "uq_recurrence_occurrences_movement_id" in error_text:
-        movement_link_error = RecurrenceMovementAlreadyLinkedError()
+        movement_link_error = RecurrenceMovementAlreadyLinkedError(
+            message=compose_error_message(
+                cause="Movement is already linked to another recurrence occurrence.",
+                action=(
+                    "Use the existing linked occurrence instead of creating a new link."
+                ),
+            )
+        )
         return JSONResponse(
             status_code=movement_link_error.status_code,
             content=_error_payload(

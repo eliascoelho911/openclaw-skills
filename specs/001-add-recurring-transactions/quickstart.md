@@ -190,7 +190,13 @@ uv run pytest
 
 ## 9) Validacao de performance
 
-Executar cenario de carga para confirmar:
+Executar o teste de budget da suite para confirmar os limites da feature:
+
+```bash
+uv run pytest apps/compras_divididas/tests/integration/test_performance_budget.py
+```
+
+Resultados esperados:
 
 - cadastro/edicao/alteracao de status <=2s p95
 - geracao de 1.000 recorrencias <=30s
@@ -198,11 +204,22 @@ Executar cenario de carga para confirmar:
 
 ## 10) Validacao MCP/Skill
 
-Ao implementar a feature, validar tambem a camada MCP/skill:
+Validar a camada MCP/skill com o servidor em execucao:
 
-1. Atualizar `get_monthly_summary` e `get_monthly_report` do MCP para aceitar
-   `auto_generate` opcional.
-2. Atualizar `skills/compras-divididas-mcp/SKILL.md` e referencias para
-   documentar o novo comportamento.
-3. Garantir teste unitario no MCP confirmando repasse de `auto_generate` para o
-   endpoint REST.
+```bash
+uv run python -m compras_divididas.cli mcp
+```
+
+Checklist:
+
+1. Chamar `get_monthly_summary` com `auto_generate=true` e confirmar que o
+   resumo inclui lancamentos recorrentes do mes.
+2. Chamar `get_monthly_report` com `auto_generate=true` e confirmar o mesmo
+   comportamento idempotente.
+3. Confirmar que `skills/compras-divididas-mcp/SKILL.md` e referencias descrevem
+   o parametro opcional e exemplos de uso.
+4. Executar teste unitario do MCP para repasse de query param:
+
+```bash
+uv run pytest apps/compras_divididas/tests/unit/test_mcp_server.py
+```

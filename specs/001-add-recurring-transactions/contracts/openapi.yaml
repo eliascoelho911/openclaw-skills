@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Compras Divididas API - Recurrences
-  version: 0.1.0
+  version: 1.0.0
   description: |
     Contract for recurring monthly transactions in Compras Divididas.
     Includes recurrence management and on-demand generation per competence month.
@@ -10,6 +10,7 @@ servers:
 tags:
   - name: Recurrences
   - name: Monthly Recurrence Generation
+  - name: Monthly Reports
 
 paths:
   /v1/recurrences:
@@ -263,10 +264,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /v1/months/{year}/{month}/summary:
     get:
-      tags: [Monthly Recurrence Generation]
+      tags: [Monthly Reports]
       summary: Return monthly summary, optionally auto-generating recurrences
       operationId: getMonthlySummary
       parameters:
@@ -297,7 +304,7 @@ paths:
 
   /v1/months/{year}/{month}/report:
     get:
-      tags: [Monthly Recurrence Generation]
+      tags: [Monthly Reports]
       summary: Return monthly report, optionally auto-generating recurrences
       operationId: getMonthlyReport
       parameters:
@@ -569,6 +576,7 @@ components:
         include_blocked_details:
           type: boolean
           default: true
+          description: Return blocked_items details when true.
 
     BlockedRecurrenceItem:
       type: object
@@ -612,6 +620,7 @@ components:
           minimum: 0
         blocked_items:
           type: array
+          description: Empty when include_blocked_details is false.
           items:
             $ref: "#/components/schemas/BlockedRecurrenceItem"
 
@@ -681,6 +690,8 @@ components:
             - RECURRENCE_NOT_FOUND
             - INVALID_RECURRENCE_STATE_TRANSITION
             - START_COMPETENCE_LOCKED
+            - DUPLICATE_RECURRENCE_OCCURRENCE
+            - RECURRENCE_MOVEMENT_ALREADY_LINKED
         message:
           type: string
         details:

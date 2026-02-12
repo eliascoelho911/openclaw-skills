@@ -128,13 +128,13 @@ description: "Task list for recurring transactions implementation"
 
 **Purpose**: Consolidar performance, regressao e documentacao transversal.
 
-- [ ] T041 [P] Implementar cenario de performance para 1.000 recorrencias elegiveis (PR-002) em `apps/compras_divididas/tests/integration/test_performance_budget.py`
-- [ ] T042 [P] Adicionar regressao de `auto_generate=true` em testes de integracao mensais em `apps/compras_divididas/tests/integration/test_monthly_summary.py` e `apps/compras_divididas/tests/integration/test_monthly_report.py`
-- [ ] T043 [P] Atualizar guia de uso da app com fluxo de recorrencias em `apps/compras_divididas/README.md`
-- [ ] T044 [P] Atualizar contrato OpenAPI final da feature em `specs/001-add-recurring-transactions/contracts/openapi.yaml`
-- [ ] T045 Revisar consistencia de mensagens `Cause: ... Action: ...` para recorrencias em `apps/compras_divididas/src/compras_divididas/domain/errors.py` e `apps/compras_divididas/src/compras_divididas/api/error_handlers.py`
-- [ ] T046 Estabilizar fixtures compartilhadas para nova suite de recorrencias em `apps/compras_divididas/tests/conftest.py`
-- [ ] T047 [P] Atualizar roteiro de validacao manual e MCP da feature em `specs/001-add-recurring-transactions/quickstart.md`
+- [x] T041 [P] Implementar cenario de performance para 1.000 recorrencias elegiveis (PR-002) em `apps/compras_divididas/tests/integration/test_performance_budget.py`
+- [x] T042 [P] Adicionar regressao de `auto_generate=true` em testes de integracao mensais em `apps/compras_divididas/tests/integration/test_monthly_summary.py` e `apps/compras_divididas/tests/integration/test_monthly_report.py`
+- [x] T043 [P] Atualizar guia de uso da app com fluxo de recorrencias em `apps/compras_divididas/README.md`
+- [x] T044 [P] Atualizar contrato OpenAPI final da feature em `specs/001-add-recurring-transactions/contracts/openapi.yaml`
+- [x] T045 Revisar consistencia de mensagens `Cause: ... Action: ...` para recorrencias em `apps/compras_divididas/src/compras_divididas/domain/errors.py` e `apps/compras_divididas/src/compras_divididas/api/error_handlers.py`
+- [x] T046 Estabilizar fixtures compartilhadas para nova suite de recorrencias em `apps/compras_divididas/tests/conftest.py`
+- [x] T047 [P] Atualizar roteiro de validacao manual e MCP da feature em `specs/001-add-recurring-transactions/quickstart.md`
 
 ---
 

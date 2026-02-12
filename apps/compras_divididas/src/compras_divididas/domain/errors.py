@@ -187,7 +187,7 @@ class StartCompetenceLockedError(DomainError):
             message=message
             or compose_error_message(
                 cause="start_competence_month cannot change after first generation.",
-                action="Keep start_competence_month unchanged and update other fields.",
+                action="Keep current start_competence_month and edit other fields.",
             ),
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             details=details or {},
