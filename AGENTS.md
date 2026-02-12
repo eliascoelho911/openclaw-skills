@@ -156,17 +156,9 @@ uv run pytest
 ```
 For quick loops, run at least impacted single-test node IDs.
 
-## Cursor/Copilot Rules
-Checked for:
-- `.cursor/rules/`
-- `.cursorrules`
-- `.github/copilot-instructions.md`
-Current repository state: none of these files exist.
-If added later, incorporate their constraints into this guide.
-
 ## Active Technologies
-- Python 3.12 + Typer (CLI), Pydantic v2, SQLAlchemy 2.x, psycopg, Alembic, OpenAIClient (OpenAI API) (001-whatsapp-split-reconciliation)
-- PostgreSQL 16 (historico completo, append-only para runs e fechamentos versionados) (001-whatsapp-split-reconciliation)
+- Python 3.12 + FastAPI, Pydantic v2, SQLAlchemy 2.x, psycopg 3, Alembic, Typer (002-whatsapp-split-reconciliation)
+- PostgreSQL 16 (movimentacoes append-only e consultas mensais sob demanda) (002-whatsapp-split-reconciliation)
 
 ## Recent Changes
-- 001-whatsapp-split-reconciliation: Added Python 3.12 + Typer (CLI), Pydantic v2, SQLAlchemy 2.x, psycopg, Alembic, OpenAIClient (OpenAI API)
+- 002-whatsapp-split-reconciliation: Added Python 3.12 + FastAPI, Pydantic v2, SQLAlchemy 2.x, psycopg 3, Alembic, Typer
