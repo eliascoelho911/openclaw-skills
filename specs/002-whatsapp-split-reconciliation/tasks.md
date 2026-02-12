@@ -128,11 +128,11 @@
 
 **Purpose**: Consolidar qualidade, performance e documentacao transversal.
 
-- [ ] T040 [P] Atualizar guia de uso e exemplos HTTP em `specs/002-whatsapp-split-reconciliation/quickstart.md`
-- [ ] T041 Executar e ajustar suite de contrato/integracao/unidade em `apps/compras_divididas/tests/`
-- [ ] T042 [P] Criar cenario de teste de carga para budgets PR-001..PR-003 em `apps/compras_divididas/tests/integration/test_performance_budget.py`
-- [ ] T043 Revisar consistencia de mensagens de erro (causa + acao) em `apps/compras_divididas/src/compras_divididas/domain/errors.py`
-- [ ] T044 Executar checklist final (`ruff`, `mypy`, `pytest`) a partir de `pyproject.toml`
+- [x] T040 [P] Atualizar guia de uso e exemplos HTTP em `specs/002-whatsapp-split-reconciliation/quickstart.md`
+- [x] T041 Executar e ajustar suite de contrato/integracao/unidade em `apps/compras_divididas/tests/`
+- [x] T042 [P] Criar cenario de teste de carga para budgets PR-001..PR-003 em `apps/compras_divididas/tests/integration/test_performance_budget.py`
+- [x] T043 Revisar consistencia de mensagens de erro (causa + acao) em `apps/compras_divididas/src/compras_divididas/domain/errors.py`
+- [x] T044 Executar checklist final (`ruff`, `mypy`, `pytest`) a partir de `pyproject.toml`
 
 ---
 

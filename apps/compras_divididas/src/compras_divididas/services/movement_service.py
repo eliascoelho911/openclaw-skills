@@ -20,6 +20,7 @@ from compras_divididas.domain.errors import (
     InvalidRequestError,
     PurchaseNotFoundError,
     RefundLimitExceededError,
+    compose_error_message,
 )
 from compras_divididas.domain.money import quantize_money
 
@@ -102,7 +103,13 @@ class MovementService:
         participant_ids = {participant.id for participant in participants}
         if payload.requested_by_participant_id not in participant_ids:
             raise InvalidRequestError(
-                message="requested_by_participant_id must be an active participant."
+                message=compose_error_message(
+                    cause=(
+                        "requested_by_participant_id does not belong "
+                        "to an active participant."
+                    ),
+                    action="Use one of the two active participant IDs and retry.",
+                )
             )
 
         payer_participant_id = (
@@ -110,7 +117,15 @@ class MovementService:
         )
         if payer_participant_id not in participant_ids:
             raise InvalidRequestError(
-                message="payer_participant_id must be an active participant."
+                message=compose_error_message(
+                    cause=(
+                        "payer_participant_id does not belong to an active participant."
+                    ),
+                    action=(
+                        "Use one of the two active participant IDs "
+                        "or omit payer_participant_id."
+                    ),
+                )
             )
 
         occurred_at = resolve_occurred_at(payload.occurred_at)
@@ -118,7 +133,12 @@ class MovementService:
         amount = quantize_money(payload.amount)
 
         if amount <= Decimal("0"):
-            raise InvalidRequestError(message="Amount must be greater than zero.")
+            raise InvalidRequestError(
+                message=compose_error_message(
+                    cause="Amount must be greater than zero.",
+                    action="Provide a positive decimal amount with two digits.",
+                )
+            )
 
         external_id = payload.external_id.strip() if payload.external_id else None
         if external_id and self._movement_repository.has_duplicate_external_id(
@@ -127,8 +147,12 @@ class MovementService:
             external_id=external_id,
         ):
             raise DuplicateExternalIDError(
-                message=(
-                    "Duplicated external_id for participant in this competence month."
+                message=compose_error_message(
+                    cause=(
+                        "external_id is already used for this participant "
+                        "in this competence month."
+                    ),
+                    action="Send a unique external_id or omit this field.",
                 )
             )
 
@@ -194,14 +218,23 @@ class MovementService:
             )
         else:
             raise InvalidRequestError(
-                message=(
-                    "Refund requires original_purchase_id or "
-                    "original_purchase_external_id."
+                message=compose_error_message(
+                    cause="Refund is missing original purchase reference.",
+                    action=(
+                        "Provide original_purchase_id or original_purchase_external_id."
+                    ),
                 )
             )
 
         if original_purchase is None:
-            raise PurchaseNotFoundError(message="Original purchase not found.")
+            raise PurchaseNotFoundError(
+                message=compose_error_message(
+                    cause="Original purchase was not found for the provided reference.",
+                    action=(
+                        "Check purchase identifiers and competence context, then retry."
+                    ),
+                )
+            )
 
         refunded_total = self._movement_repository.get_total_refunded_amount(
             original_purchase.id
@@ -217,6 +250,14 @@ class MovementService:
                 },
             )
             raise RefundLimitExceededError(
-                message="Refund exceeds original purchase amount."
+                message=compose_error_message(
+                    cause=(
+                        "Refund exceeds the remaining refundable amount "
+                        "of the purchase."
+                    ),
+                    action=(
+                        "Use a lower refund value or reference the correct purchase."
+                    ),
+                )
             )
         return original_purchase

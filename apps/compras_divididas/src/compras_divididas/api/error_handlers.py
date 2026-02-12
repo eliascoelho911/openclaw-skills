@@ -11,7 +11,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
-from compras_divididas.domain.errors import DomainError, DuplicateExternalIDError
+from compras_divididas.domain.errors import (
+    DomainError,
+    DuplicateExternalIDError,
+    compose_error_message,
+)
 
 
 def _error_payload(code: str, message: str, details: dict[str, Any]) -> dict[str, Any]:
@@ -42,7 +46,10 @@ async def handle_validation_error(
         status_code=HTTPStatus.BAD_REQUEST,
         content=_error_payload(
             code="INVALID_REQUEST",
-            message="Request validation failed.",
+            message=compose_error_message(
+                cause="Request payload validation failed.",
+                action="Fix the invalid fields and send the request again.",
+            ),
             details={"errors": jsonable_encoder(exc.errors())},
         ),
     )
@@ -54,7 +61,13 @@ async def handle_integrity_error(_: Request, exc: IntegrityError) -> JSONRespons
     error_text = str(exc.orig)
     if "uq_financial_movements_competence_payer_external_id" in error_text:
         duplicate_error = DuplicateExternalIDError(
-            message="Duplicated external_id for participant in this competence month."
+            message=compose_error_message(
+                cause=(
+                    "external_id is already used for this participant "
+                    "in this competence month."
+                ),
+                action="Use a unique external_id or omit this field.",
+            )
         )
         return JSONResponse(
             status_code=duplicate_error.status_code,
@@ -69,7 +82,10 @@ async def handle_integrity_error(_: Request, exc: IntegrityError) -> JSONRespons
         status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
         content=_error_payload(
             code="PERSISTENCE_ERROR",
-            message="Persistence constraint violated.",
+            message=compose_error_message(
+                cause="A persistence constraint was violated.",
+                action="Review request data consistency and retry.",
+            ),
             details={},
         ),
     )
@@ -82,7 +98,10 @@ async def handle_unexpected_error(_: Request, exc: Exception) -> JSONResponse:
         status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         content=_error_payload(
             code="INTERNAL_SERVER_ERROR",
-            message="Unexpected internal server error.",
+            message=compose_error_message(
+                cause="An unexpected internal error occurred.",
+                action="Retry later or contact support if the error persists.",
+            ),
             details={"error_type": type(exc).__name__},
         ),
     )

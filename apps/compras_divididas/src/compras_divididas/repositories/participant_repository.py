@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from compras_divididas.db.models.participant import Participant
-from compras_divididas.domain.errors import DomainInvariantError
+from compras_divididas.domain.errors import DomainInvariantError, compose_error_message
 
 
 class ParticipantRepository:
@@ -24,7 +24,13 @@ class ParticipantRepository:
         participants = list(self._session.scalars(statement).all())
         if len(participants) != 2:
             raise DomainInvariantError(
-                message="Exactly two active participants are required.",
+                message=compose_error_message(
+                    cause="The system does not have exactly two active participants.",
+                    action=(
+                        "Activate exactly two participants "
+                        "before using financial endpoints."
+                    ),
+                ),
                 details={"active_participants": len(participants)},
             )
         return participants
