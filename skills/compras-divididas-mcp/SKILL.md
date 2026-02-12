@@ -28,7 +28,7 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 ## Critical rules
 
 - Send `amount` as a 2-decimal string (`"120.50"`), never as a float.
-- For recurrence operations, always use a 50/50 split with `split_config={"type":"equal"}`.
+- For recurrence operations, always use a 50/50 split with `split_config={"mode":"equal"}`.
 - Send `external_id` for WhatsApp/integration events to enable safe deduplication.
 - Do not guess `participant_id`; discover it with `list_participants` before creating movements.
 - Send `occurred_at` when backfilling history; if omitted, the API uses the current timestamp in `America/Sao_Paulo`.
@@ -51,7 +51,7 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
   - `start_competence_month`: month provided by user; otherwise current competence month.
   - `end_competence_month`: `start_competence_month + installments - 1` months (inclusive).
   - `reference_day`: explicit day from user; otherwise current day in `America/Sao_Paulo`.
-  - `split_config`: always `{"type":"equal"}`.
+  - `split_config`: always `{"mode":"equal"}`.
 - Only use `create_movement` for these patterns when the user explicitly asks to register a single purchase.
 
 ## Recommended sequences
@@ -65,14 +65,14 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 ### Register a recurrence
 
 1. Call `list_participants` and map valid participant IDs.
-2. Call `create_recurrence` with `description`, `amount`, `payer_participant_id`, `requested_by_participant_id`, `split_config={"type":"equal"}`, `reference_day`, and `start_competence_month`.
+2. Call `create_recurrence` with `description`, `amount`, `payer_participant_id`, `requested_by_participant_id`, `split_config={"mode":"equal"}`, `reference_day`, and `start_competence_month`.
 3. Optionally include `end_competence_month` for fixed-duration recurrences.
 4. Confirm `status=active` and keep the returned recurrence `id` for future lifecycle operations.
 
 ### Manage recurrence lifecycle
 
 1. Call `list_recurrences` with optional filters (`status`, `year`, `month`, `limit`, `offset`) to locate target rules.
-2. Call `edit_recurrence` to update fields (for example `amount`, `description`, `reference_day`) while keeping `split_config={"type":"equal"}`.
+2. Call `edit_recurrence` to update fields (for example `amount`, `description`, `reference_day`) while keeping `split_config={"mode":"equal"}`.
 3. Use `clear_end_competence_month=true` in `edit_recurrence` when you need to remove an existing end month.
 4. Call `end_recurrence` to end a recurrence logically (status transition to `ended`), optionally passing `end_competence_month`.
 
