@@ -1,0 +1,571 @@
+openapi: 3.1.0
+info:
+  title: Compras Divididas API - Recurrences
+  version: 0.1.0
+  description: |
+    Contract for recurring monthly transactions in Compras Divididas.
+    Includes recurrence management and on-demand generation per competence month.
+servers:
+  - url: http://localhost:8000
+tags:
+  - name: Recurrences
+  - name: Monthly Recurrence Generation
+
+paths:
+  /v1/recurrences:
+    get:
+      tags: [Recurrences]
+      summary: List recurrences with optional filters
+      operationId: listRecurrences
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            $ref: "#/components/schemas/RecurrenceStatus"
+        - in: query
+          name: year
+          required: false
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+          description: Optional filter by eligible competence year.
+        - in: query
+          name: month
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+          description: Optional filter by eligible competence month.
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: Paginated recurrence list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecurrenceListResponse"
+        "400":
+          description: Invalid query filters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags: [Recurrences]
+      summary: Create a monthly recurrence
+      operationId: createRecurrence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRecurrenceRequest"
+      responses:
+        "201":
+          description: Recurrence created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurrence"
+        "400":
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/recurrences/{recurrence_id}:
+    patch:
+      tags: [Recurrences]
+      summary: Update recurrence fields
+      operationId: updateRecurrence
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRecurrenceRequest"
+      responses:
+        "200":
+          description: Recurrence updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurrence"
+        "400":
+          description: Invalid payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Recurrence not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/recurrences/{recurrence_id}/pause:
+    post:
+      tags: [Recurrences]
+      summary: Pause recurrence generation
+      operationId: pauseRecurrence
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PauseRecurrenceRequest"
+      responses:
+        "200":
+          description: Recurrence paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurrence"
+        "404":
+          description: Recurrence not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/recurrences/{recurrence_id}/reactivate:
+    post:
+      tags: [Recurrences]
+      summary: Reactivate a paused recurrence
+      operationId: reactivateRecurrence
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReactivateRecurrenceRequest"
+      responses:
+        "200":
+          description: Recurrence reactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurrence"
+        "404":
+          description: Recurrence not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/recurrences/{recurrence_id}/end:
+    post:
+      tags: [Recurrences]
+      summary: End recurrence permanently
+      operationId: endRecurrence
+      parameters:
+        - $ref: "#/components/parameters/RecurrenceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EndRecurrenceRequest"
+      responses:
+        "200":
+          description: Recurrence ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recurrence"
+        "404":
+          description: Recurrence not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Invalid end competence or transition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /v1/months/{year}/{month}/recurrences/generate:
+    post:
+      tags: [Monthly Recurrence Generation]
+      summary: Generate recurrence occurrences for one competence month
+      operationId: generateRecurrencesForMonth
+      parameters:
+        - $ref: "#/components/parameters/Year"
+        - $ref: "#/components/parameters/Month"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateRecurrencesRequest"
+      responses:
+        "200":
+          description: Generation executed (idempotent)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateRecurrencesResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  parameters:
+    Year:
+      in: path
+      name: year
+      required: true
+      schema:
+        type: integer
+        minimum: 2000
+        maximum: 2100
+    Month:
+      in: path
+      name: month
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+    RecurrenceId:
+      in: path
+      name: recurrence_id
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ParticipantId:
+      type: string
+      minLength: 1
+      maxLength: 32
+      examples: [elias, leticia]
+
+    CompetenceMonth:
+      type: string
+      pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+      examples: ["2026-02", "2026-12"]
+
+    PositiveMoney:
+      type: string
+      pattern: "^[0-9]+\\.[0-9]{2}$"
+      examples: ["120.00", "45.90"]
+
+    Money:
+      type: string
+      pattern: "^-?[0-9]+\\.[0-9]{2}$"
+      examples: ["0.00", "120.00", "-20.00"]
+
+    SplitConfig:
+      type: object
+      required: [mode]
+      properties:
+        mode:
+          type: string
+          enum: [equal]
+      additionalProperties: true
+
+    RecurrenceStatus:
+      type: string
+      enum: [active, paused, ended]
+
+    CreateRecurrenceRequest:
+      type: object
+      required:
+        - description
+        - amount
+        - payer_participant_id
+        - requested_by_participant_id
+        - split_config
+        - reference_day
+        - start_competence_month
+      properties:
+        description:
+          type: string
+          minLength: 1
+          maxLength: 280
+        amount:
+          $ref: "#/components/schemas/PositiveMoney"
+        payer_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        split_config:
+          $ref: "#/components/schemas/SplitConfig"
+        reference_day:
+          type: integer
+          minimum: 1
+          maximum: 31
+        start_competence_month:
+          $ref: "#/components/schemas/CompetenceMonth"
+        end_competence_month:
+          allOf:
+            - $ref: "#/components/schemas/CompetenceMonth"
+          nullable: true
+
+    UpdateRecurrenceRequest:
+      type: object
+      minProperties: 2
+      required: [requested_by_participant_id]
+      properties:
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 280
+        amount:
+          $ref: "#/components/schemas/PositiveMoney"
+        payer_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        split_config:
+          $ref: "#/components/schemas/SplitConfig"
+        reference_day:
+          type: integer
+          minimum: 1
+          maximum: 31
+        start_competence_month:
+          $ref: "#/components/schemas/CompetenceMonth"
+          description: Allowed only before first generation.
+        end_competence_month:
+          allOf:
+            - $ref: "#/components/schemas/CompetenceMonth"
+          nullable: true
+
+    PauseRecurrenceRequest:
+      type: object
+      required: [requested_by_participant_id]
+      properties:
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        reason:
+          type: string
+          maxLength: 200
+
+    ReactivateRecurrenceRequest:
+      type: object
+      required: [requested_by_participant_id]
+      properties:
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+
+    EndRecurrenceRequest:
+      type: object
+      required: [requested_by_participant_id]
+      properties:
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        end_competence_month:
+          allOf:
+            - $ref: "#/components/schemas/CompetenceMonth"
+          nullable: true
+
+    Recurrence:
+      type: object
+      required:
+        - id
+        - description
+        - amount
+        - payer_participant_id
+        - requested_by_participant_id
+        - split_config
+        - periodicity
+        - reference_day
+        - start_competence_month
+        - status
+        - next_competence_month
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        amount:
+          $ref: "#/components/schemas/Money"
+        payer_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        split_config:
+          $ref: "#/components/schemas/SplitConfig"
+        periodicity:
+          type: string
+          enum: [monthly]
+        reference_day:
+          type: integer
+          minimum: 1
+          maximum: 31
+        start_competence_month:
+          $ref: "#/components/schemas/CompetenceMonth"
+        end_competence_month:
+          allOf:
+            - $ref: "#/components/schemas/CompetenceMonth"
+          nullable: true
+        status:
+          $ref: "#/components/schemas/RecurrenceStatus"
+        first_generated_competence_month:
+          allOf:
+            - $ref: "#/components/schemas/CompetenceMonth"
+          nullable: true
+        last_processed_competence_month:
+          allOf:
+            - $ref: "#/components/schemas/CompetenceMonth"
+          nullable: true
+        next_competence_month:
+          $ref: "#/components/schemas/CompetenceMonth"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    RecurrenceListResponse:
+      type: object
+      required: [items, total, limit, offset]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Recurrence"
+        total:
+          type: integer
+          minimum: 0
+        limit:
+          type: integer
+          minimum: 1
+        offset:
+          type: integer
+          minimum: 0
+
+    GenerateRecurrencesRequest:
+      type: object
+      properties:
+        requested_by_participant_id:
+          $ref: "#/components/schemas/ParticipantId"
+        dry_run:
+          type: boolean
+          default: false
+        include_blocked_details:
+          type: boolean
+          default: true
+
+    BlockedRecurrenceItem:
+      type: object
+      required: [recurrence_id, code, message]
+      properties:
+        recurrence_id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          examples: [INACTIVE_PARTICIPANT, INVALID_SPLIT_CONFIG]
+        message:
+          type: string
+
+    GenerateRecurrencesResponse:
+      type: object
+      required:
+        - competence_month
+        - processed_rules
+        - generated_count
+        - ignored_count
+        - blocked_count
+        - failed_count
+      properties:
+        competence_month:
+          $ref: "#/components/schemas/CompetenceMonth"
+        processed_rules:
+          type: integer
+          minimum: 0
+        generated_count:
+          type: integer
+          minimum: 0
+        ignored_count:
+          type: integer
+          minimum: 0
+        blocked_count:
+          type: integer
+          minimum: 0
+        failed_count:
+          type: integer
+          minimum: 0
+        blocked_items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BlockedRecurrenceItem"
+
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples:
+            - INVALID_REQUEST
+            - RECURRENCE_NOT_FOUND
+            - INVALID_RECURRENCE_STATE_TRANSITION
+            - START_COMPETENCE_LOCKED
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
