@@ -18,6 +18,7 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
    - Get the on-demand consolidated report: `get_monthly_report`
 4. Validate the result using canonical fields (`id`, `competence_month`, `total_net`, `transfer`).
 5. Handle failures using the playbook in `references/api_reference.md`.
+6. After each tool call, always answer with the PT-BR template from `references/response_templates.md`.
 
 ## Critical rules
 
@@ -26,6 +27,7 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 - Do not guess `participant_id`; discover it with `list_participants` before creating movements.
 - Send `occurred_at` when backfilling history; if omitted, the API uses the current timestamp in `America/Sao_Paulo`.
 - Create refunds only with an original purchase reference (`original_purchase_id` or `original_purchase_external_id`).
+- Keep post-tool messages direct, in Portuguese, and with emoji.
 
 ## Recommended sequences
 
@@ -55,3 +57,17 @@ Read `references/api_reference.md` for the full contract for each tool:
 - validations and limits
 - response format
 - common errors and corrective action
+
+Read `references/response_templates.md` to format every post-tool answer:
+
+- one success template and one failure template per tool
+- direct PT-BR text with emojis
+- placeholders ready for script-based filling
+- optional renderer: `scripts/render_tool_response.py`
+
+## Response formatting policy
+
+- Never answer raw JSON after using a tool.
+- Always convert the result to the corresponding PT-BR template.
+- Keep at most 3-6 lines when possible.
+- Include only actionable fields (IDs, values, competence month, transfer).

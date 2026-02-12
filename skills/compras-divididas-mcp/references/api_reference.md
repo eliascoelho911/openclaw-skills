@@ -8,7 +8,8 @@
 4. Tool `create_movement`
 5. Tool `get_monthly_summary`
 6. Tool `get_monthly_report`
-7. MCP error handling and recovery
+7. Response templates (PT-BR)
+8. MCP error handling and recovery
 
 ## Global conventions
 
@@ -22,6 +23,7 @@
 - Treat money values as 2-decimal strings (`"10.00"`).
 - Use the competence timezone `America/Sao_Paulo` when interpreting monthly consolidation.
 - Call `list_participants` at the start of the session and reuse the returned IDs.
+- After every tool execution, format the user-facing answer using `references/response_templates.md`.
 
 ## Tool `list_participants`
 
@@ -297,6 +299,12 @@ Return the on-demand consolidated monthly report, with the same schema as `get_m
 
 - Use `get_monthly_summary` for in-month tracking.
 - Use `get_monthly_report` for the consolidated view you share at month close.
+
+## Response templates (PT-BR)
+
+- Use `references/response_templates.md` after each tool call.
+- Prefer the script `scripts/render_tool_response.py` when you have JSON output and need consistent formatting.
+- Keep template outputs short, direct, and emoji-based.
 
 ## MCP error handling and recovery
 
