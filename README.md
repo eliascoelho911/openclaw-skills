@@ -65,6 +65,9 @@ uv run mypy .
 
 # Rodar uma app
 uv run python -m compras_divididas.cli healthcheck
+
+# Rodar servidor MCP (stdio)
+uv run python -m compras_divididas.cli mcp
 ```
 
 ### Docker
