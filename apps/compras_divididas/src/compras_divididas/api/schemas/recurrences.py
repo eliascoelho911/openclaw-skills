@@ -182,6 +182,77 @@ class GenerateRecurrencesRequest(BaseModel):
     include_blocked_details: bool = True
 
 
+class UpdateRecurrenceRequest(BaseModel):
+    """Payload for recurrence updates."""
+
+    requested_by_participant_id: ParticipantId
+    description: str | None = Field(default=None, min_length=1, max_length=280)
+    amount: str | None = Field(default=None, pattern=r"^[0-9]+\.[0-9]{2}$")
+    payer_participant_id: ParticipantId | None = None
+    split_config: dict[str, Any] | None = None
+    reference_day: int | None = Field(default=None, ge=1, le=31)
+    start_competence_month: str | None = Field(
+        default=None,
+        pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$",
+    )
+    end_competence_month: str | None = Field(
+        default=None,
+        pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$",
+    )
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        trimmed = value.strip()
+        if not trimmed:
+            raise ValueError("Description cannot be blank.")
+        return trimmed
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        try:
+            amount_decimal = Decimal(value)
+        except InvalidOperation as exc:
+            raise ValueError("Amount must be a decimal number.") from exc
+        if amount_decimal <= Decimal("0"):
+            raise ValueError("Amount must be greater than zero.")
+        return value
+
+    @model_validator(mode="after")
+    def validate_has_changes(self) -> UpdateRecurrenceRequest:
+        if len(self.model_fields_set - {"requested_by_participant_id"}) == 0:
+            raise ValueError("At least one updatable field must be provided.")
+        return self
+
+
+class PauseRecurrenceRequest(BaseModel):
+    """Payload to pause recurrence generation."""
+
+    requested_by_participant_id: ParticipantId
+    reason: str | None = Field(default=None, max_length=200)
+
+
+class ReactivateRecurrenceRequest(BaseModel):
+    """Payload to reactivate recurrence generation."""
+
+    requested_by_participant_id: ParticipantId
+
+
+class EndRecurrenceRequest(BaseModel):
+    """Payload to end recurrence permanently."""
+
+    requested_by_participant_id: ParticipantId
+    end_competence_month: str | None = Field(
+        default=None,
+        pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$",
+    )
+
+
 class BlockedRecurrenceItemResponse(BaseModel):
     """Blocked recurrence detail returned by generation endpoint."""
 

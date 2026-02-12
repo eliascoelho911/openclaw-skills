@@ -320,6 +320,87 @@ class RecurrenceRepository:
         rule.next_competence_month = next_competence_month
         rule.version += 1
 
+    def update_rule(
+        self,
+        *,
+        rule: RecurrenceRule,
+        description: str | None,
+        amount: Decimal | None,
+        payer_participant_id: str | None,
+        requested_by_participant_id: str,
+        split_config: dict[str, Any] | None,
+        reference_day: int | None,
+        start_competence_month: date | None,
+        end_competence_month: date | None,
+        clear_end_competence_month: bool,
+    ) -> RecurrenceRule:
+        """Update mutable recurrence fields using last-write-wins semantics."""
+
+        if description is not None:
+            rule.description = description
+        if amount is not None:
+            rule.amount = amount
+        if payer_participant_id is not None:
+            rule.payer_participant_id = payer_participant_id
+        if split_config is not None:
+            rule.split_config = split_config
+        if reference_day is not None:
+            rule.reference_day = reference_day
+        if start_competence_month is not None:
+            rule.start_competence_month = start_competence_month
+        if clear_end_competence_month:
+            rule.end_competence_month = None
+        elif end_competence_month is not None:
+            rule.end_competence_month = end_competence_month
+
+        rule.requested_by_participant_id = requested_by_participant_id
+        rule.version += 1
+        rule.updated_at = datetime.now(tz=UTC)
+        self._session.flush()
+        return rule
+
+    def pause_rule(
+        self,
+        *,
+        rule: RecurrenceRule,
+    ) -> RecurrenceRule:
+        """Pause one recurrence rule."""
+
+        rule.status = RecurrenceStatus.PAUSED
+        rule.version += 1
+        rule.updated_at = datetime.now(tz=UTC)
+        self._session.flush()
+        return rule
+
+    def reactivate_rule(
+        self,
+        *,
+        rule: RecurrenceRule,
+    ) -> RecurrenceRule:
+        """Reactivate one paused recurrence rule."""
+
+        rule.status = RecurrenceStatus.ACTIVE
+        rule.version += 1
+        rule.updated_at = datetime.now(tz=UTC)
+        self._session.flush()
+        return rule
+
+    def end_rule(
+        self,
+        *,
+        rule: RecurrenceRule,
+        end_competence_month: date | None,
+    ) -> RecurrenceRule:
+        """Mark one recurrence rule as ended."""
+
+        if end_competence_month is not None:
+            rule.end_competence_month = end_competence_month
+        rule.status = RecurrenceStatus.ENDED
+        rule.version += 1
+        rule.updated_at = datetime.now(tz=UTC)
+        self._session.flush()
+        return rule
+
     @staticmethod
     def _apply_list_filters(
         statement: Select[tuple[RecurrenceRule]],

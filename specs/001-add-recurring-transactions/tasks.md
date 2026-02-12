@@ -108,17 +108,17 @@ description: "Task list for recurring transactions implementation"
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Escrever contract test de `PATCH /v1/recurrences/{recurrence_id}` cobrindo lock de `start_competence_month` em `apps/compras_divididas/tests/contract/test_update_recurrence.py`
-- [ ] T034 [P] [US3] Escrever contract tests de transicoes `/pause`, `/reactivate` e `/end` em `apps/compras_divididas/tests/contract/test_update_recurrence_status.py`
-- [ ] T035 [P] [US3] Expandir unit tests de last-write-wins e regras de transicao de estado em `apps/compras_divididas/tests/unit/test_recurrence_service.py`
-- [ ] T036 [US3] Escrever integration test de efeito somente em competencias futuras em `apps/compras_divididas/tests/integration/test_recurrence_lifecycle_effective_month.py`
+- [x] T033 [P] [US3] Escrever contract test de `PATCH /v1/recurrences/{recurrence_id}` cobrindo lock de `start_competence_month` em `apps/compras_divididas/tests/contract/test_update_recurrence.py`
+- [x] T034 [P] [US3] Escrever contract tests de transicoes `/pause`, `/reactivate` e `/end` em `apps/compras_divididas/tests/contract/test_update_recurrence_status.py`
+- [x] T035 [P] [US3] Expandir unit tests de last-write-wins e regras de transicao de estado em `apps/compras_divididas/tests/unit/test_recurrence_service.py`
+- [x] T036 [US3] Escrever integration test de efeito somente em competencias futuras em `apps/compras_divididas/tests/integration/test_recurrence_lifecycle_effective_month.py`
 
 ### Implementation for User Story 3
 
-- [ ] T037 [US3] Implementar mutacoes de update/pause/reactivate/end e estado terminal em `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`
-- [ ] T038 [US3] Implementar regras de negocio de ciclo de vida e eventos (`recurrence_updated`, `recurrence_paused`, `recurrence_reactivated`, `recurrence_ended`) em `apps/compras_divididas/src/compras_divididas/services/recurrence_service.py`
-- [ ] T039 [US3] Implementar handlers `PATCH /v1/recurrences/{recurrence_id}`, `POST /v1/recurrences/{recurrence_id}/pause`, `POST /v1/recurrences/{recurrence_id}/reactivate` e `POST /v1/recurrences/{recurrence_id}/end` em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`
-- [ ] T040 [US3] Expandir schemas de lifecycle/edicao e metadados de recorrencia em `apps/compras_divididas/src/compras_divididas/api/schemas/recurrences.py`
+- [x] T037 [US3] Implementar mutacoes de update/pause/reactivate/end e estado terminal em `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`
+- [x] T038 [US3] Implementar regras de negocio de ciclo de vida e eventos (`recurrence_updated`, `recurrence_paused`, `recurrence_reactivated`, `recurrence_ended`) em `apps/compras_divididas/src/compras_divididas/services/recurrence_service.py`
+- [x] T039 [US3] Implementar handlers `PATCH /v1/recurrences/{recurrence_id}`, `POST /v1/recurrences/{recurrence_id}/pause`, `POST /v1/recurrences/{recurrence_id}/reactivate` e `POST /v1/recurrences/{recurrence_id}/end` em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`
+- [x] T040 [US3] Expandir schemas de lifecycle/edicao e metadados de recorrencia em `apps/compras_divididas/src/compras_divididas/api/schemas/recurrences.py`
 
 **Checkpoint**: US3 funcional e independente, com manutencao de recorrencia completa.
 

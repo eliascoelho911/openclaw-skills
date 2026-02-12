@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from typing import Annotated, Literal
+from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, Path, Query, status
 
@@ -13,10 +14,14 @@ from compras_divididas.api.dependencies import (
 )
 from compras_divididas.api.schemas.recurrences import (
     CreateRecurrenceRequest,
+    EndRecurrenceRequest,
     GenerateRecurrencesRequest,
     GenerateRecurrencesResponse,
+    PauseRecurrenceRequest,
+    ReactivateRecurrenceRequest,
     RecurrenceListResponse,
     RecurrenceResponse,
+    UpdateRecurrenceRequest,
     parse_competence_month,
 )
 from compras_divididas.db.models.recurrence_rule import RecurrenceStatus
@@ -26,8 +31,12 @@ from compras_divididas.services.recurrence_generation_service import (
 )
 from compras_divididas.services.recurrence_service import (
     CreateRecurrenceInput,
+    EndRecurrenceInput,
     ListRecurrenceInput,
+    PauseRecurrenceInput,
+    ReactivateRecurrenceInput,
     RecurrenceService,
+    UpdateRecurrenceInput,
 )
 
 router = APIRouter(prefix="/recurrences", tags=["Recurrences"])
@@ -114,6 +123,124 @@ def list_recurrences(
         limit=limit,
         offset=offset,
     )
+
+
+@router.patch(
+    "/{recurrence_id}",
+    response_model=RecurrenceResponse,
+    responses={
+        400: {"description": "Invalid payload"},
+        404: {"description": "Recurrence not found"},
+        422: {"description": "Business rule violation"},
+    },
+)
+def update_recurrence(
+    recurrence_id: UUID,
+    payload: UpdateRecurrenceRequest,
+    service: Annotated[RecurrenceService, Depends(get_recurrence_service)],
+) -> RecurrenceResponse:
+    """Update one recurrence using last-write-wins semantics."""
+
+    recurrence = service.update_recurrence(
+        UpdateRecurrenceInput(
+            recurrence_id=recurrence_id,
+            requested_by_participant_id=payload.requested_by_participant_id,
+            description=payload.description,
+            amount=payload.amount,
+            payer_participant_id=payload.payer_participant_id,
+            split_config=payload.split_config,
+            reference_day=payload.reference_day,
+            start_competence_month=parse_competence_month(
+                payload.start_competence_month
+            )
+            if payload.start_competence_month is not None
+            else None,
+            end_competence_month=parse_competence_month(payload.end_competence_month)
+            if payload.end_competence_month is not None
+            else None,
+            clear_end_competence_month=(
+                "end_competence_month" in payload.model_fields_set
+                and payload.end_competence_month is None
+            ),
+        )
+    )
+    return RecurrenceResponse.from_model(recurrence)
+
+
+@router.post(
+    "/{recurrence_id}/pause",
+    response_model=RecurrenceResponse,
+    responses={
+        404: {"description": "Recurrence not found"},
+        422: {"description": "Invalid state transition"},
+    },
+)
+def pause_recurrence(
+    recurrence_id: UUID,
+    payload: PauseRecurrenceRequest,
+    service: Annotated[RecurrenceService, Depends(get_recurrence_service)],
+) -> RecurrenceResponse:
+    """Pause one active recurrence."""
+
+    recurrence = service.pause_recurrence(
+        PauseRecurrenceInput(
+            recurrence_id=recurrence_id,
+            requested_by_participant_id=payload.requested_by_participant_id,
+            reason=payload.reason,
+        )
+    )
+    return RecurrenceResponse.from_model(recurrence)
+
+
+@router.post(
+    "/{recurrence_id}/reactivate",
+    response_model=RecurrenceResponse,
+    responses={
+        404: {"description": "Recurrence not found"},
+        422: {"description": "Invalid state transition"},
+    },
+)
+def reactivate_recurrence(
+    recurrence_id: UUID,
+    payload: ReactivateRecurrenceRequest,
+    service: Annotated[RecurrenceService, Depends(get_recurrence_service)],
+) -> RecurrenceResponse:
+    """Reactivate one paused recurrence."""
+
+    recurrence = service.reactivate_recurrence(
+        ReactivateRecurrenceInput(
+            recurrence_id=recurrence_id,
+            requested_by_participant_id=payload.requested_by_participant_id,
+        )
+    )
+    return RecurrenceResponse.from_model(recurrence)
+
+
+@router.post(
+    "/{recurrence_id}/end",
+    response_model=RecurrenceResponse,
+    responses={
+        404: {"description": "Recurrence not found"},
+        422: {"description": "Invalid state transition"},
+    },
+)
+def end_recurrence(
+    recurrence_id: UUID,
+    payload: EndRecurrenceRequest,
+    service: Annotated[RecurrenceService, Depends(get_recurrence_service)],
+) -> RecurrenceResponse:
+    """End one recurrence permanently."""
+
+    recurrence = service.end_recurrence(
+        EndRecurrenceInput(
+            recurrence_id=recurrence_id,
+            requested_by_participant_id=payload.requested_by_participant_id,
+            end_competence_month=parse_competence_month(payload.end_competence_month)
+            if payload.end_competence_month is not None
+            else None,
+        )
+    )
+    return RecurrenceResponse.from_model(recurrence)
 
 
 @monthly_generation_router.post(
