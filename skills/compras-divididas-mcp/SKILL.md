@@ -1,0 +1,57 @@
+---
+name: compras-divididas-mcp
+description: Operate the compras_divididas MCP/API to register purchases and refunds, search movements with monthly filters, and fetch monthly summary/report reconciliation between two participants. Use when the request involves the tools list_participants, list_movements, create_movement, get_monthly_summary, or get_monthly_report, including WhatsApp ingestion, external_id deduplication, and API error diagnosis.
+---
+
+# Compras Divididas MCP
+
+Use this skill to operate the monthly reconciliation flow via the compras_divididas MCP server, without manual HTTP calls.
+
+## Operating flow
+
+1. Validate connectivity by calling `list_participants` at the start of the session.
+2. Map the returned `participant_id` values and reuse those exact IDs in all other tools.
+3. Select the right tool for the user's intent:
+   - Register a purchase or refund: `create_movement`
+   - Find a purchase for a refund: `list_movements`
+   - Check the month partials: `get_monthly_summary`
+   - Get the on-demand consolidated report: `get_monthly_report`
+4. Validate the result using canonical fields (`id`, `competence_month`, `total_net`, `transfer`).
+5. Handle failures using the playbook in `references/api_reference.md`.
+
+## Critical rules
+
+- Send `amount` as a 2-decimal string (`"120.50"`), never as a float.
+- Send `external_id` for WhatsApp/integration events to enable safe deduplication.
+- Do not guess `participant_id`; discover it with `list_participants` before creating movements.
+- Send `occurred_at` when backfilling history; if omitted, the API uses the current timestamp in `America/Sao_Paulo`.
+- Create refunds only with an original purchase reference (`original_purchase_id` or `original_purchase_external_id`).
+
+## Recommended sequences
+
+### Register a purchase
+
+1. Call `list_participants` and map the sender to `requested_by_participant_id`.
+2. Call `create_movement` with `type="purchase"`, `amount`, `description`, and `external_id` (when available).
+3. Persist the returned `id` to make future refunds easier.
+
+### Register a refund without a `purchase_id`
+
+1. Call `list_movements` with `year`, `month`, and filters (`type="purchase"`, `amount`, `description`, `participant_id`, `external_id`) to locate the purchase.
+2. Prefer `original_purchase_id` when it is available.
+3. Use `original_purchase_external_id` when the `purchase_id` is not available and the external identifier is trustworthy.
+
+### Close the monthly reconciliation
+
+1. Call `get_monthly_summary` to validate the partials.
+2. Call `get_monthly_report` for the on-demand consolidated view (same response schema).
+3. Communicate `transfer.amount`, `transfer.debtor_participant_id`, and `transfer.creditor_participant_id`.
+
+## Detailed reference
+
+Read `references/api_reference.md` for the full contract for each tool:
+
+- required and optional parameters
+- validations and limits
+- response format
+- common errors and corrective action
