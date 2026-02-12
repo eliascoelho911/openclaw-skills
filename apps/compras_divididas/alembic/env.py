@@ -1,28 +1,37 @@
 from __future__ import annotations
 
-from logging.config import fileConfig
 import os
-from pathlib import Path
 import sys
+from logging.config import fileConfig
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
+
+if TYPE_CHECKING:
+    from sqlalchemy import MetaData
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SRC_DIR = ROOT_DIR / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from compras_divididas.db.base import Base, import_orm_models
-from compras_divididas.core.settings import get_settings
+
+def _load_target_metadata() -> tuple[MetaData, str]:
+    from compras_divididas.core.settings import get_settings
+    from compras_divididas.db.base import Base, import_orm_models
+
+    import_orm_models()
+    return Base.metadata, get_settings().database_url
+
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-import_orm_models()
-target_metadata = Base.metadata
+target_metadata, default_database_url = _load_target_metadata()
 
 
 def _resolve_database_url() -> str:
@@ -30,7 +39,7 @@ def _resolve_database_url() -> str:
     if database_url:
         return database_url
 
-    return get_settings().database_url
+    return default_database_url
 
 
 config.set_main_option("sqlalchemy.url", _resolve_database_url())
