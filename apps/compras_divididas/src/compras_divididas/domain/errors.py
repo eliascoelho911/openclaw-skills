@@ -132,3 +132,110 @@ class DomainInvariantError(DomainError):
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
             details=details or {},
         )
+
+
+class RecurrenceNotFoundError(DomainError):
+    """Raised when recurrence rule cannot be resolved."""
+
+    def __init__(
+        self,
+        message: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="RECURRENCE_NOT_FOUND",
+            message=message
+            or compose_error_message(
+                cause="Recurrence rule was not found.",
+                action="Use a valid recurrence_id and retry.",
+            ),
+            status_code=HTTPStatus.NOT_FOUND,
+            details=details or {},
+        )
+
+
+class InvalidRecurrenceStateTransitionError(DomainError):
+    """Raised when recurrence lifecycle transition is not allowed."""
+
+    def __init__(
+        self,
+        message: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="INVALID_RECURRENCE_STATE_TRANSITION",
+            message=message
+            or compose_error_message(
+                cause="Recurrence status transition is not allowed.",
+                action="Apply a valid transition for the current status.",
+            ),
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            details=details or {},
+        )
+
+
+class StartCompetenceLockedError(DomainError):
+    """Raised when start competence month change is blocked."""
+
+    def __init__(
+        self,
+        message: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="START_COMPETENCE_LOCKED",
+            message=message
+            or compose_error_message(
+                cause="start_competence_month cannot change after first generation.",
+                action="Keep start_competence_month unchanged and update other fields.",
+            ),
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
+            details=details or {},
+        )
+
+
+class DuplicateRecurrenceOccurrenceError(DomainError):
+    """Raised when recurrence occurrence idempotency constraint is hit."""
+
+    def __init__(
+        self,
+        message: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="DUPLICATE_RECURRENCE_OCCURRENCE",
+            message=message
+            or compose_error_message(
+                cause=(
+                    "An occurrence already exists for this recurrence and competence."
+                ),
+                action=(
+                    "Treat this operation as idempotent or use another "
+                    "competence month."
+                ),
+            ),
+            status_code=HTTPStatus.CONFLICT,
+            details=details or {},
+        )
+
+
+class RecurrenceMovementAlreadyLinkedError(DomainError):
+    """Raised when one movement is linked to multiple occurrences."""
+
+    def __init__(
+        self,
+        message: str | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            code="RECURRENCE_MOVEMENT_ALREADY_LINKED",
+            message=message
+            or compose_error_message(
+                cause="Movement is already linked to another recurrence occurrence.",
+                action=(
+                    "Use the existing linked occurrence instead of creating a new link."
+                ),
+            ),
+            status_code=HTTPStatus.CONFLICT,
+            details=details or {},
+        )

@@ -13,9 +13,14 @@ from compras_divididas.repositories.movement_query_repository import (
 )
 from compras_divididas.repositories.movement_repository import MovementRepository
 from compras_divididas.repositories.participant_repository import ParticipantRepository
+from compras_divididas.repositories.recurrence_repository import RecurrenceRepository
 from compras_divididas.services.monthly_report_service import MonthlyReportService
 from compras_divididas.services.monthly_summary_service import MonthlySummaryService
 from compras_divididas.services.movement_service import MovementService
+from compras_divididas.services.recurrence_generation_service import (
+    RecurrenceGenerationService,
+)
+from compras_divididas.services.recurrence_service import RecurrenceService
 
 
 def get_movement_service(
@@ -69,3 +74,27 @@ def get_monthly_report_service(
         movement_query_repository=MovementQueryRepository(session),
     )
     return MonthlyReportService(monthly_summary_service=summary_service)
+
+
+def get_recurrence_repository(
+    session: Annotated[Session, Depends(get_db_session)],
+) -> RecurrenceRepository:
+    """Build recurrence repository with per-request session."""
+
+    return RecurrenceRepository(session)
+
+
+def get_recurrence_service(
+    session: Annotated[Session, Depends(get_db_session)],
+) -> RecurrenceService:
+    """Build recurrence service with per-request session."""
+
+    return RecurrenceService(session=session)
+
+
+def get_recurrence_generation_service(
+    _: Annotated[Session, Depends(get_db_session)],
+) -> RecurrenceGenerationService:
+    """Build recurrence generation service."""
+
+    return RecurrenceGenerationService()
