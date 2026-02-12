@@ -14,6 +14,8 @@ from sqlalchemy.exc import IntegrityError
 from compras_divididas.domain.errors import (
     DomainError,
     DuplicateExternalIDError,
+    DuplicateRecurrenceOccurrenceError,
+    RecurrenceMovementAlreadyLinkedError,
     compose_error_message,
 )
 
@@ -75,6 +77,45 @@ async def handle_integrity_error(_: Request, exc: IntegrityError) -> JSONRespons
                 duplicate_error.code,
                 duplicate_error.message,
                 duplicate_error.details,
+            ),
+        )
+
+    if "uq_recurrence_occurrences_rule_competence" in error_text:
+        duplicate_occurrence_error = DuplicateRecurrenceOccurrenceError(
+            message=compose_error_message(
+                cause=(
+                    "An occurrence already exists for this recurrence and competence."
+                ),
+                action=(
+                    "Treat this operation as idempotent or use another "
+                    "competence month."
+                ),
+            )
+        )
+        return JSONResponse(
+            status_code=duplicate_occurrence_error.status_code,
+            content=_error_payload(
+                duplicate_occurrence_error.code,
+                duplicate_occurrence_error.message,
+                duplicate_occurrence_error.details,
+            ),
+        )
+
+    if "uq_recurrence_occurrences_movement_id" in error_text:
+        movement_link_error = RecurrenceMovementAlreadyLinkedError(
+            message=compose_error_message(
+                cause="Movement is already linked to another recurrence occurrence.",
+                action=(
+                    "Use the existing linked occurrence instead of creating a new link."
+                ),
+            )
+        )
+        return JSONResponse(
+            status_code=movement_link_error.status_code,
+            content=_error_payload(
+                movement_link_error.code,
+                movement_link_error.message,
+                movement_link_error.details,
             ),
         )
 

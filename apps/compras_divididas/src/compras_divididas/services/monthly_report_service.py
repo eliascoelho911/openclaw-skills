@@ -25,8 +25,13 @@ class MonthlyReportService:
         year: int,
         month: int,
         request_id: str | None,
+        auto_generate: bool = False,
     ) -> MonthlySummaryProjection:
-        projection = self.monthly_summary_service.get_summary(year=year, month=month)
+        projection = self.monthly_summary_service.get_summary(
+            year=year,
+            month=month,
+            auto_generate=auto_generate,
+        )
         competence_month = (
             f"{projection.competence_month.year:04d}-"
             f"{projection.competence_month.month:02d}"
