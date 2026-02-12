@@ -87,10 +87,10 @@
     },
     "lsp": {
         "pyright": {
-            "disabled": false
+            "disabled": true
         },
         "basedpyright": {
-            "disabled": true,
+            "disabled": false,
             "command": [
                 "basedpyright-langserver",
                 "--stdio"
