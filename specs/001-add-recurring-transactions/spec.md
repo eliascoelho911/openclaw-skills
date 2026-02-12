@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Eu preciso que o compras_divididas suporte transacoes recorrentes."
 
+## Clarifications
+
+### Session 2026-02-11
+
+- Q: Como o sistema deve tratar edicao concorrente da mesma recorrencia? → A: Last-write-wins: ultima edicao salva substitui a anterior sem bloqueio.
+- Q: Quais campos podem ser editados apos existir primeira geracao da recorrencia? → A: Permitir editar tudo, mas bloquear competencia inicial apos primeira geracao.
+- Q: Exclusao de recorrencia deve ser permitida? → A: Nao permitir exclusao; apenas encerrar/inativar.
+- Q: Quando uma edicao deve passar a valer? → A: Aplicar imediatamente na competencia corrente ainda nao gerada.
+- Q: Qual regra aplicar quando o dia configurado nao existir na competencia? → A: Ajustar para o ultimo dia valido da competencia.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Cadastrar transacao recorrente (Priority: P1)
@@ -54,10 +64,11 @@ Como pessoa usuaria, quero pausar, reativar, editar e encerrar recorrencias para
 
 ### Edge Cases
 
-- Quando o dia configurado da recorrencia nao existe na competencia (ex.: dia 31 em fevereiro), o sistema deve aplicar a regra de ajuste definida para o ultimo dia valido da competencia.
+- Quando o dia configurado da recorrencia nao existe na competencia (ex.: dia 31 em fevereiro), o sistema deve ajustar para o ultimo dia valido da competencia.
 - Quando participantes vinculados a recorrencia ficam inativos antes de uma nova geracao, o sistema deve bloquear a geracao dessa recorrencia e informar a necessidade de ajuste.
 - Quando uma geracao de competencia e interrompida no meio do processo, a nova execucao deve retomar com seguranca sem criar duplicidades.
 - Quando uma recorrencia e encerrada no mesmo mes da competencia alvo, o sistema deve respeitar a vigencia configurada e gerar apenas se ainda estiver dentro do periodo valido.
+- Quando duas edicoes concorrentes da mesma recorrencia forem confirmadas com sucesso, a ultima persistencia deve prevalecer como estado final.
 
 ## Requirements *(mandatory)*
 
@@ -70,11 +81,15 @@ Como pessoa usuaria, quero pausar, reativar, editar e encerrar recorrencias para
 - **FR-005**: O sistema DEVE gerar lancamentos de recorrencia para uma competencia alvo preservando os dados de negocio definidos na recorrencia.
 - **FR-006**: O sistema DEVE garantir idempotencia por recorrencia e competencia, criando no maximo um lancamento gerado por combinacao.
 - **FR-007**: O sistema DEVE permitir pausar, reativar, editar e encerrar recorrencias sem remover lancamentos historicos ja gerados.
-- **FR-008**: O sistema DEVE aplicar alteracoes de recorrencia apenas para geracoes futuras, mantendo inalterados os lancamentos ja criados anteriormente.
+- **FR-008**: O sistema DEVE aplicar alteracoes de recorrencia para competencias ainda nao geradas (incluindo a competencia corrente quando ainda nao processada), mantendo inalterados os lancamentos ja criados anteriormente.
 - **FR-009**: O sistema DEVE registrar historico de eventos relevantes de recorrencia (criacao, alteracao, pausa, reativacao, encerramento e geracao) com data e responsavel pela acao.
 - **FR-010**: O sistema DEVE apresentar mensagens de validacao e erro claras, acionaveis e consistentes com o padrao atual do produto.
 - **FR-011**: O sistema DEVE permitir executar a geracao de recorrencias sob demanda para uma competencia especifica e informar quantidade de itens gerados, ignorados e bloqueados.
 - **FR-012**: O sistema DEVE impedir geracao de recorrencia quando houver inconsistencias de dados obrigatorios, orientando como corrigir antes de nova tentativa.
+- **FR-013**: O sistema DEVE adotar last-write-wins para edicao concorrente de recorrencia, considerando valida a ultima alteracao persistida com sucesso.
+- **FR-014**: O sistema DEVE permitir edicao de todos os campos da recorrencia, exceto competencia inicial apos a primeira geracao concluida para essa recorrencia.
+- **FR-015**: O sistema NAO DEVE permitir exclusao de recorrencia; a descontinuacao DEVE ocorrer apenas por encerramento ou inativacao com preservacao de historico.
+- **FR-016**: O sistema DEVE ajustar a data de referencia para o ultimo dia valido da competencia quando o dia configurado da recorrencia nao existir no mes alvo.
 
 ### Key Entities *(include if feature involves data)*
 
