@@ -9,6 +9,8 @@ Template de projeto Python com arquitetura multimódulo usando UV workspace, MyP
 ├── ruff.toml                   # Configuração compartilhada do Ruff
 ├── mypy.ini                    # MyPy strict mode
 ├── docker-compose.yml          # Ambiente de desenvolvimento
+├── docker-compose.prod.yml     # Stack de producao (API + DB)
+├── .env.production.example     # Variaveis de ambiente de referencia
 │
 ├── packages/                   # Módulos compartilhados
 │   └── common/                 # Código de uso comum
@@ -77,13 +79,17 @@ uv run python -m compras_divididas.cli mcp
 docker build -f apps/compras_divididas/Dockerfile -t compras-divididas:latest .
 
 # Rodar container
-docker run --rm compras-divididas:latest
+docker run --rm -p 8000:8000 --env-file .env.production compras-divididas:latest
 
 # Dev environment com PostgreSQL
-docker-compose up
+docker compose up -d db
 
-# Parar
-docker-compose down
+# Subir stack de producao local
+cp .env.production.example .env.production
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+
+# Parar stack de producao
+docker compose --env-file .env.production -f docker-compose.prod.yml down
 ```
 
 ## Adicionar um Novo Módulo
@@ -194,13 +200,14 @@ Para pular: `git commit --no-verify`
 ## Docker
 
 O Dockerfile usa multi-stage build:
-1. **Builder**: Instala UV, resolve dependências, builda wheels
-2. **Runtime**: Apenas o `.venv`, sem ferramentas de build
+1. **Builder**: gera wheels da app e dependencias
+2. **Runtime**: instala somente wheels e roda como usuario nao-root
 
 Benefícios:
-- Imagem final pequena (~60MB)
+- Menor superficie de ataque no runtime
 - Layer caching eficiente
-- Sem código fonte no runtime
+- Healthcheck HTTP nativo (`/health/live`)
+- Migracoes automaticas via `RUN_DB_MIGRATIONS=true`
 
 ## Workflow de Desenvolvimento
 

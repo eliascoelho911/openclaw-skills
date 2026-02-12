@@ -20,7 +20,7 @@ uv sync
 ### Banco local (opcional via Docker)
 
 ```bash
-docker-compose up -d db
+docker compose up -d db
 ```
 
 Configure variaveis de ambiente:
@@ -36,6 +36,41 @@ Rode as migracoes:
 uv run alembic -c apps/compras_divididas/alembic.ini upgrade head
 ```
 
+## Deploy de producao com Docker
+
+1. Crie o arquivo de ambiente de producao e ajuste os valores:
+
+```bash
+cp .env.production.example .env.production
+```
+
+2. Suba API + PostgreSQL em modo detached:
+
+```bash
+docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+```
+
+3. Valide a saude da aplicacao:
+
+```bash
+curl http://localhost:8000/health/ready
+```
+
+4. Para parar:
+
+```bash
+docker compose --env-file .env.production -f docker-compose.prod.yml down
+```
+
+Variaveis de runtime usadas pelo container da API:
+
+- `API_PORT` (porta publicada no host via Docker Compose)
+- `DATABASE_URL`
+- `RUN_DB_MIGRATIONS` (`true`/`false`)
+- `API_WORKERS`
+- `API_LOG_LEVEL`
+- `FORWARDED_ALLOW_IPS`
+
 ## Execucao da API
 
 ```bash
@@ -44,6 +79,8 @@ uv run uvicorn compras_divididas.api.app:app --app-dir apps/compras_divididas/sr
 
 Endpoints principais:
 
+- `GET /health/live`
+- `GET /health/ready`
 - `GET /v1/participants`
 - `GET /v1/movements`
 - `POST /v1/movements`
