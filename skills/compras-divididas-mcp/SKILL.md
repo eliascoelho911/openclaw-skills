@@ -1,6 +1,6 @@
 ---
 name: compras-divididas-mcp
-description: Operate the compras_divididas MCP/API to register purchases and refunds, search movements with monthly filters, and fetch monthly summary/report reconciliation between two participants. Use when the request involves the tools list_participants, list_movements, create_movement, get_monthly_summary, or get_monthly_report, including WhatsApp ingestion, external_id deduplication, and API error diagnosis.
+description: Operate the compras_divididas MCP/API to register recurring transactions, purchases and refunds, search movements with monthly filters, and fetch monthly summary/report reconciliation between two participants. Use when the request involves the tools list_participants, create_recurrence, list_movements, create_movement, get_monthly_summary, or get_monthly_report, including WhatsApp ingestion, external_id deduplication, and API error diagnosis.
 ---
 
 # Compras Divididas MCP
@@ -12,6 +12,7 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 1. Validate connectivity by calling `list_participants` at the start of the session.
 2. Map the returned `participant_id` values and reuse those exact IDs in all other tools.
 3. Select the right tool for the user's intent:
+   - Register a recurrence: `create_recurrence`
    - Register a purchase or refund: `create_movement`
    - Find a purchase for a refund: `list_movements`
    - Check the month partials: `get_monthly_summary` (`auto_generate` optional)
@@ -36,6 +37,13 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 1. Call `list_participants` and map the sender to `requested_by_participant_id`.
 2. Call `create_movement` with `type="purchase"`, `amount`, `description`, and `external_id` (when available).
 3. Persist the returned `id` to make future refunds easier.
+
+### Register a recurrence
+
+1. Call `list_participants` and map valid participant IDs.
+2. Call `create_recurrence` with `description`, `amount`, `payer_participant_id`, `requested_by_participant_id`, `split_config`, `reference_day`, and `start_competence_month`.
+3. Optionally include `end_competence_month` for fixed-duration recurrences.
+4. Confirm `status=active` and keep the returned recurrence `id` for future lifecycle operations.
 
 ### Register a refund without a `purchase_id`
 

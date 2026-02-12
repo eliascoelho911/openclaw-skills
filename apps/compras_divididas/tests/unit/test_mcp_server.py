@@ -56,6 +56,7 @@ def test_create_mcp_server_registers_expected_tools() -> None:
 
     assert tool_names == [
         "create_movement",
+        "create_recurrence",
         "get_monthly_report",
         "get_monthly_summary",
         "list_movements",
@@ -123,6 +124,51 @@ def test_create_movement_tool_sends_expected_payload() -> None:
             "description": "Padaria",
             "requested_by_participant_id": "ana",
             "external_id": "msg-001",
+        },
+    }
+
+
+def test_create_recurrence_tool_sends_expected_payload() -> None:
+    async def scenario() -> dict[str, object]:
+        fake_requester = FakeRequester(
+            responses={("POST", "/v1/recurrences"): {"id": "rec-123"}}
+        )
+        server = create_mcp_server(
+            api_base_url="http://example.test",
+            timeout_seconds=1,
+            requester=fake_requester,
+        )
+        async with Client(server) as client:
+            await client.call_tool(
+                "create_recurrence",
+                {
+                    "description": "Aluguel",
+                    "amount": "1500.00",
+                    "payer_participant_id": "elias",
+                    "requested_by_participant_id": "elias",
+                    "split_config": {"type": "equal"},
+                    "reference_day": 5,
+                    "start_competence_month": "2026-03",
+                    "end_competence_month": "2026-12",
+                },
+            )
+        return fake_requester.calls[0]
+
+    recorded_call = asyncio.run(scenario())
+
+    assert recorded_call == {
+        "method": "POST",
+        "path": "/v1/recurrences",
+        "params": None,
+        "json_body": {
+            "description": "Aluguel",
+            "amount": "1500.00",
+            "payer_participant_id": "elias",
+            "requested_by_participant_id": "elias",
+            "split_config": {"type": "equal"},
+            "reference_day": 5,
+            "start_competence_month": "2026-03",
+            "end_competence_month": "2026-12",
         },
     }
 

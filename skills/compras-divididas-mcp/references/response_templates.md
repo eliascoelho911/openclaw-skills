@@ -77,6 +77,30 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 ➡️ Acao recomendada: {{suggested_action}}
 ```
 
+## `create_recurrence`
+
+### Sucesso
+
+```text
+🔁 Recorrencia criada com sucesso!
+- ID: {{id}}
+- Descricao: {{description}}
+- Valor: R$ {{amount}}
+- Tipo: {{recurrence_kind}}
+- Parcelas: {{installments}}
+- Inicio: {{start_competence_month}}
+- Fim: {{end_competence_month_or_dash}}
+```
+
+### Erro
+
+```text
+❌ Nao foi possivel criar a recorrencia.
+- Codigo: {{code}}
+- Mensagem: {{message}}
+➡️ Acao recomendada: {{suggested_action}}
+```
+
 ## `get_monthly_summary`
 
 ### Sucesso
@@ -135,3 +159,6 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 - `generation_note`:
   - quando `auto_generate=true`: `Inclui geracao automatica de recorrencias desta competencia.`
   - caso contrario: `Considera somente movimentacoes ja registradas.`
+- `recurrence_kind` e `installments`:
+  - quando `end_competence_month` estiver preenchido: `Parcelada` e numero de meses entre inicio/fim (inclusivo)
+  - quando `end_competence_month` vier `null`: `Fixa` e `Ilimitada`

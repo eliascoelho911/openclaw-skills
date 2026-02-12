@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 import httpx
 from fastmcp import FastMCP
@@ -155,6 +155,37 @@ def create_mcp_server(
             params["external_id"] = external_id
 
         return await api_requester.request("GET", "/v1/movements", params=params)
+
+    @mcp.tool
+    async def create_recurrence(
+        description: str,
+        amount: str,
+        payer_participant_id: str,
+        requested_by_participant_id: str,
+        split_config: dict[str, Any],
+        reference_day: int,
+        start_competence_month: str,
+        end_competence_month: str | None = None,
+    ) -> object:
+        """Create a monthly recurrence with active status."""
+
+        payload: dict[str, object] = {
+            "description": description,
+            "amount": amount,
+            "payer_participant_id": payer_participant_id,
+            "requested_by_participant_id": requested_by_participant_id,
+            "split_config": split_config,
+            "reference_day": reference_day,
+            "start_competence_month": start_competence_month,
+        }
+        if end_competence_month is not None:
+            payload["end_competence_month"] = end_competence_month
+
+        return await api_requester.request(
+            "POST",
+            "/v1/recurrences",
+            json_body=payload,
+        )
 
     @mcp.tool
     async def create_movement(

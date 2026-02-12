@@ -5,11 +5,12 @@
 1. Global conventions
 2. Tool `list_participants`
 3. Tool `list_movements`
-4. Tool `create_movement`
-5. Tool `get_monthly_summary`
-6. Tool `get_monthly_report`
-7. Response templates (PT-BR)
-8. MCP error handling and recovery
+4. Tool `create_recurrence`
+5. Tool `create_movement`
+6. Tool `get_monthly_summary`
+7. Tool `get_monthly_report`
+8. Response templates (PT-BR)
+9. MCP error handling and recovery
 
 ## Global conventions
 
@@ -17,6 +18,7 @@
 - Each MCP tool proxies to an internal REST endpoint:
   - `list_participants` -> `GET /v1/participants`
   - `list_movements` -> `GET /v1/movements`
+  - `create_recurrence` -> `POST /v1/recurrences`
   - `create_movement` -> `POST /v1/movements`
   - `get_monthly_summary` -> `GET /v1/months/{year}/{month}/summary`
   - `get_monthly_report` -> `GET /v1/months/{year}/{month}/report`
@@ -122,6 +124,77 @@ Search movements for a month with optional filters and pagination.
 - Sending `amount` as a number (`120`) instead of a string (`"120.00"`).
 - Omitting `year` or `month`.
 - Using `limit` greater than `200`.
+
+## Tool `create_recurrence`
+
+### Purpose
+
+Create one monthly recurrence in active status.
+
+### Input contract
+
+- Required:
+  - `description` (string, 1..280)
+  - `amount` (string decimal, regex `^[0-9]+\.[0-9]{2}$`)
+  - `payer_participant_id` (string)
+  - `requested_by_participant_id` (string)
+  - `split_config` (object)
+  - `reference_day` (int, 1..31)
+  - `start_competence_month` (string `YYYY-MM`)
+- Optional:
+  - `end_competence_month` (string `YYYY-MM`)
+
+### Domain rules
+
+- Validate positive amount and non-empty description.
+- Validate month range when `end_competence_month` is provided (`end >= start`).
+- Recurrence is created with `status=active`.
+- `next_competence_month` is calculated by API based on schedule rules.
+
+### Output contract (`RecurrenceResponse`)
+
+- `id` (UUID)
+- `description` (string)
+- `amount` (money string)
+- `payer_participant_id` (string)
+- `requested_by_participant_id` (string)
+- `split_config` (object)
+- `periodicity` (`monthly`)
+- `reference_day` (int)
+- `start_competence_month` (`YYYY-MM`)
+- `end_competence_month` (`YYYY-MM` or null)
+- `status` (`active`, `paused`, `ended`)
+- `first_generated_competence_month` (`YYYY-MM` or null)
+- `last_processed_competence_month` (`YYYY-MM` or null)
+- `next_competence_month` (`YYYY-MM`)
+- `created_at` (datetime)
+- `updated_at` (datetime)
+
+### Example tool call
+
+```json
+{
+  "tool": "create_recurrence",
+  "arguments": {
+    "description": "Aluguel",
+    "amount": "1500.00",
+    "payer_participant_id": "elias",
+    "requested_by_participant_id": "elias",
+    "split_config": {"type": "equal"},
+    "reference_day": 5,
+    "start_competence_month": "2026-03",
+    "end_competence_month": "2026-12"
+  }
+}
+```
+
+### Error matrix
+
+- `400 INVALID_REQUEST`
+  - invalid payload fields
+  - month filters inconsistent
+- `422 DOMAIN_INVARIANT_VIOLATION`
+  - recurrence business rules violated
 
 ## Tool `create_movement`
 

@@ -25,6 +25,31 @@ def _type_label(value: str) -> str:
     return value
 
 
+def _compute_installments(
+    start_competence_month: str,
+    end_competence_month: str,
+) -> int | None:
+    try:
+        start_year_text, start_month_text = start_competence_month.split(
+            "-", maxsplit=1
+        )
+        end_year_text, end_month_text = end_competence_month.split("-", maxsplit=1)
+        start_year = int(start_year_text)
+        start_month = int(start_month_text)
+        end_year = int(end_year_text)
+        end_month = int(end_month_text)
+    except (ValueError, TypeError):
+        return None
+
+    if not (1 <= start_month <= 12 and 1 <= end_month <= 12):
+        return None
+
+    diff = (end_year - start_year) * 12 + (end_month - start_month)
+    if diff < 0:
+        return None
+    return diff + 1
+
+
 def _transfer_sentence(data: dict[str, Any]) -> str:
     transfer = data.get("transfer")
     if not isinstance(transfer, dict):
@@ -167,6 +192,47 @@ def render_create_movement(status: str, data: dict[str, Any]) -> str:
     )
 
 
+def render_create_recurrence(status: str, data: dict[str, Any]) -> str:
+    if status == "error":
+        code, message = _extract_error(data)
+        action = _suggested_action(code)
+        return (
+            "❌ Nao foi possivel criar a recorrencia.\n"
+            f"- Codigo: {code}\n"
+            f"- Mensagem: {message}\n"
+            f"➡️ Acao recomendada: {action}"
+        )
+
+    recurrence_id = _get(data, "id")
+    description = _get(data, "description")
+    amount = _get(data, "amount")
+    start_competence_month = _get(data, "start_competence_month")
+    end_competence_month = _get(data, "end_competence_month", "-")
+
+    recurrence_kind = "Fixa"
+    installments = "Ilimitada"
+    if end_competence_month != "-":
+        recurrence_kind = "Parcelada"
+        installments_count = _compute_installments(
+            start_competence_month,
+            end_competence_month,
+        )
+        installments = (
+            str(installments_count) if installments_count is not None else "Indefinida"
+        )
+
+    return (
+        "🔁 Recorrencia criada com sucesso!\n"
+        f"- ID: {recurrence_id}\n"
+        f"- Descricao: {description}\n"
+        f"- Valor: R$ {amount}\n"
+        f"- Tipo: {recurrence_kind}\n"
+        f"- Parcelas: {installments}\n"
+        f"- Inicio: {start_competence_month}\n"
+        f"- Fim: {end_competence_month}"
+    )
+
+
 def _monthly_common(emoji: str, title: str, data: dict[str, Any], footer: str) -> str:
     competence_month = _get(data, "competence_month")
     total_gross = _get(data, "total_gross")
@@ -242,6 +308,8 @@ def render(tool: str, status: str, data: dict[str, Any]) -> str:
         return render_list_movements(status, data)
     if tool == "create_movement":
         return render_create_movement(status, data)
+    if tool == "create_recurrence":
+        return render_create_recurrence(status, data)
     if tool == "get_monthly_summary":
         return render_get_monthly_summary(status, data)
     if tool == "get_monthly_report":
