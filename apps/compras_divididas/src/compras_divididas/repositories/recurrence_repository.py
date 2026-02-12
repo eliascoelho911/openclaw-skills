@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import Select, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,11 @@ from compras_divididas.db.models.recurrence_occurrence import (
     RecurrenceOccurrence,
     RecurrenceOccurrenceStatus,
 )
-from compras_divididas.db.models.recurrence_rule import RecurrenceRule, RecurrenceStatus
+from compras_divididas.db.models.recurrence_rule import (
+    RecurrencePeriodicity,
+    RecurrenceRule,
+    RecurrenceStatus,
+)
 
 
 @dataclass(slots=True, frozen=True)
@@ -28,6 +33,16 @@ class EligibleRecurrenceRuleFilters:
 
     competence_month: date
     limit: int = 100
+
+
+@dataclass(slots=True, frozen=True)
+class RecurrenceListFilters:
+    """Filters for listing recurrences."""
+
+    status: RecurrenceStatus | None = None
+    competence_month: date | None = None
+    limit: int = 50
+    offset: int = 0
 
 
 class RecurrenceRepository:
@@ -51,6 +66,64 @@ class RecurrenceRepository:
             .with_for_update()
         )
         return self._session.scalar(statement)
+
+    def add_rule(
+        self,
+        *,
+        description: str,
+        amount: Decimal,
+        payer_participant_id: str,
+        requested_by_participant_id: str,
+        split_config: dict[str, Any],
+        reference_day: int,
+        start_competence_month: date,
+        end_competence_month: date | None,
+        next_competence_month: date,
+    ) -> RecurrenceRule:
+        """Persist a newly created recurrence rule."""
+
+        now = datetime.now(tz=UTC)
+        rule = RecurrenceRule(
+            description=description,
+            amount=amount,
+            payer_participant_id=payer_participant_id,
+            requested_by_participant_id=requested_by_participant_id,
+            split_config=split_config,
+            periodicity=RecurrencePeriodicity.MONTHLY,
+            reference_day=reference_day,
+            start_competence_month=start_competence_month,
+            end_competence_month=end_competence_month,
+            status=RecurrenceStatus.ACTIVE,
+            first_generated_competence_month=None,
+            last_generated_competence_month=None,
+            next_competence_month=next_competence_month,
+            version=1,
+            created_at=now,
+            updated_at=now,
+        )
+        self._session.add(rule)
+        self._session.flush()
+        return rule
+
+    def list_rules(
+        self,
+        filters: RecurrenceListFilters,
+    ) -> tuple[list[RecurrenceRule], int]:
+        """List recurrence rules with optional status and month eligibility."""
+
+        statement = self._apply_list_filters(select(RecurrenceRule), filters)
+        total_statement = select(func.count()).select_from(statement.subquery())
+        total = int(self._session.scalar(total_statement) or 0)
+
+        page_statement = (
+            statement.order_by(
+                RecurrenceRule.created_at.desc(), RecurrenceRule.id.desc()
+            )
+            .limit(filters.limit)
+            .offset(filters.offset)
+        )
+        items = list(self._session.scalars(page_statement).all())
+        return items, total
 
     def list_eligible_rules_for_generation(
         self,
@@ -192,3 +265,26 @@ class RecurrenceRepository:
         rule.last_generated_competence_month = processed_competence_month
         rule.next_competence_month = next_competence_month
         rule.version += 1
+
+    @staticmethod
+    def _apply_list_filters(
+        statement: Select[tuple[RecurrenceRule]],
+        filters: RecurrenceListFilters,
+    ) -> Select[tuple[RecurrenceRule]]:
+        typed_statement = statement
+
+        if filters.status is not None:
+            typed_statement = typed_statement.where(
+                RecurrenceRule.status == filters.status
+            )
+
+        if filters.competence_month is not None:
+            typed_statement = typed_statement.where(
+                RecurrenceRule.start_competence_month <= filters.competence_month,
+                or_(
+                    RecurrenceRule.end_competence_month.is_(None),
+                    RecurrenceRule.end_competence_month >= filters.competence_month,
+                ),
+            )
+
+        return typed_statement

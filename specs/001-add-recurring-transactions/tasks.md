@@ -56,18 +56,18 @@ description: "Task list for recurring transactions implementation"
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Escrever contract test de `POST /v1/recurrences` (201, 400, 422) em `apps/compras_divididas/tests/contract/test_create_recurrence.py`
-- [ ] T014 [P] [US1] Escrever contract test de `GET /v1/recurrences` com filtros/paginacao em `apps/compras_divididas/tests/contract/test_list_recurrences.py`
-- [ ] T015 [P] [US1] Escrever unit tests de validacao de cadastro e calculo de `next_competence_month` em `apps/compras_divididas/tests/unit/test_recurrence_service.py`
-- [ ] T016 [US1] Escrever integration test de fluxo cadastrar+listar em `apps/compras_divididas/tests/integration/test_recurrence_create_and_list.py`
+- [x] T013 [P] [US1] Escrever contract test de `POST /v1/recurrences` (201, 400, 422) em `apps/compras_divididas/tests/contract/test_create_recurrence.py`
+- [x] T014 [P] [US1] Escrever contract test de `GET /v1/recurrences` com filtros/paginacao em `apps/compras_divididas/tests/contract/test_list_recurrences.py`
+- [x] T015 [P] [US1] Escrever unit tests de validacao de cadastro e calculo de `next_competence_month` em `apps/compras_divididas/tests/unit/test_recurrence_service.py`
+- [x] T016 [US1] Escrever integration test de fluxo cadastrar+listar em `apps/compras_divididas/tests/integration/test_recurrence_create_and_list.py`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Implementar schemas de create/list/response de recorrencia em `apps/compras_divididas/src/compras_divididas/api/schemas/recurrences.py`
-- [ ] T018 [US1] Implementar queries de criacao/listagem com filtros de status e competencia em `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`
-- [ ] T019 [US1] Implementar casos de uso de criar/listar e evento `recurrence_created` em `apps/compras_divididas/src/compras_divididas/services/recurrence_service.py`
-- [ ] T020 [US1] Implementar handlers `POST /v1/recurrences` e `GET /v1/recurrences` em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`
-- [ ] T021 [US1] Conectar dependencias e incluir router de recorrencias em `apps/compras_divididas/src/compras_divididas/api/dependencies.py` e `apps/compras_divididas/src/compras_divididas/api/routes/__init__.py`
+- [x] T017 [P] [US1] Implementar schemas de create/list/response de recorrencia em `apps/compras_divididas/src/compras_divididas/api/schemas/recurrences.py`
+- [x] T018 [US1] Implementar queries de criacao/listagem com filtros de status e competencia em `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`
+- [x] T019 [US1] Implementar casos de uso de criar/listar e evento `recurrence_created` em `apps/compras_divididas/src/compras_divididas/services/recurrence_service.py`
+- [x] T020 [US1] Implementar handlers `POST /v1/recurrences` e `GET /v1/recurrences` em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`
+- [x] T021 [US1] Conectar dependencias e incluir router de recorrencias em `apps/compras_divididas/src/compras_divididas/api/dependencies.py` e `apps/compras_divididas/src/compras_divididas/api/routes/__init__.py`
 
 **Checkpoint**: US1 funcional, testavel isoladamente e pronta para demo de MVP.
 

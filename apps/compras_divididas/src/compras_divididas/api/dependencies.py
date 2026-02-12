@@ -89,7 +89,11 @@ def get_recurrence_service(
 ) -> RecurrenceService:
     """Build recurrence service with per-request session."""
 
-    return RecurrenceService(session=session)
+    return RecurrenceService(
+        recurrence_repository=RecurrenceRepository(session),
+        participant_repository=ParticipantRepository(session),
+        session=session,
+    )
 
 
 def get_recurrence_generation_service(
