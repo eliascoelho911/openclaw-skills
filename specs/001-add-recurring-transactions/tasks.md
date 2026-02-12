@@ -25,7 +25,7 @@ description: "Task list for recurring transactions implementation"
 - [x] T001 Criar esqueletos dos modulos de recorrencia em `apps/compras_divididas/src/compras_divididas/api/routes/recurrences.py`, `apps/compras_divididas/src/compras_divididas/api/schemas/recurrences.py`, `apps/compras_divididas/src/compras_divididas/repositories/recurrence_repository.py`, `apps/compras_divididas/src/compras_divididas/services/recurrence_service.py`, `apps/compras_divididas/src/compras_divididas/services/recurrence_generation_service.py` e `apps/compras_divididas/src/compras_divididas/domain/recurrence_schedule.py`
 - [x] T002 [P] Criar arquivos de testes da feature em `apps/compras_divididas/tests/contract/test_create_recurrence.py`, `apps/compras_divididas/tests/contract/test_generate_recurrences.py`, `apps/compras_divididas/tests/contract/test_update_recurrence_status.py`, `apps/compras_divididas/tests/unit/test_recurrence_service.py`, `apps/compras_divididas/tests/unit/test_recurrence_schedule.py` e `apps/compras_divididas/tests/integration/test_recurrence_generation_resume.py`
 - [x] T003 [P] Criar arquivos de modelos ORM de recorrencia em `apps/compras_divididas/src/compras_divididas/db/models/recurrence_rule.py`, `apps/compras_divididas/src/compras_divididas/db/models/recurrence_occurrence.py` e `apps/compras_divididas/src/compras_divididas/db/models/recurrence_event.py`
-- [x] T004 [P] Criar revisao Alembic inicial da feature em `apps/compras_divididas/alembic/versions/20260211_01_add_recurrence_tables.py`
+- [x] T004 [P] Criar revisao Alembic inicial da feature em `apps/compras_divididas/alembic/versions/004_add_recurrence_rules.py`
 
 ---
 
@@ -35,7 +35,7 @@ description: "Task list for recurring transactions implementation"
 
 **⚠️ CRITICAL**: Nenhuma user story deve iniciar antes da conclusao desta fase.
 
-- [x] T005 Implementar DDL completa (tabelas, enums, constraints e indices) no migration `apps/compras_divididas/alembic/versions/20260211_01_add_recurrence_tables.py`
+- [x] T005 Implementar DDL completa (tabelas, enums, constraints e indices) no migration `apps/compras_divididas/alembic/versions/004_add_recurrence_rules.py`
 - [x] T006 Implementar modelos SQLAlchemy e relacionamentos em `apps/compras_divididas/src/compras_divididas/db/models/recurrence_rule.py`, `apps/compras_divididas/src/compras_divididas/db/models/recurrence_occurrence.py` e `apps/compras_divididas/src/compras_divididas/db/models/recurrence_event.py`
 - [x] T007 [P] Exportar novos modelos no pacote ORM em `apps/compras_divididas/src/compras_divididas/db/models/__init__.py`
 - [x] T008 [P] Adicionar erros de dominio de recorrencia com mensagens acionaveis em ingles em `apps/compras_divididas/src/compras_divididas/domain/errors.py`

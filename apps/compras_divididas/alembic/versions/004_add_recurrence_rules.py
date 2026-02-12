@@ -1,6 +1,6 @@
 """Add recurrence rule, occurrence and event tables.
 
-Revision ID: 20260211_01_add_recurrence_tables
+Revision ID: 004_add_recurrence_rules
 Revises: 003_seed_default_participants
 Create Date: 2026-02-11
 """
@@ -12,7 +12,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "20260211_01_add_recurrence_tables"
+revision: str = "004_add_recurrence_rules"
 down_revision: str | None = "003_seed_default_participants"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
