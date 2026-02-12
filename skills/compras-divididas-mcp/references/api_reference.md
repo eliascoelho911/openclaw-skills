@@ -6,11 +6,14 @@
 2. Tool `list_participants`
 3. Tool `list_movements`
 4. Tool `create_recurrence`
-5. Tool `create_movement`
-6. Tool `get_monthly_summary`
-7. Tool `get_monthly_report`
-8. Response templates (PT-BR)
-9. MCP error handling and recovery
+5. Tool `list_recurrences`
+6. Tool `edit_recurrence`
+7. Tool `end_recurrence`
+8. Tool `create_movement`
+9. Tool `get_monthly_summary`
+10. Tool `get_monthly_report`
+11. Response templates (PT-BR)
+12. MCP error handling and recovery
 
 ## Global conventions
 
@@ -19,6 +22,9 @@
   - `list_participants` -> `GET /v1/participants`
   - `list_movements` -> `GET /v1/movements`
   - `create_recurrence` -> `POST /v1/recurrences`
+  - `list_recurrences` -> `GET /v1/recurrences`
+  - `edit_recurrence` -> `PATCH /v1/recurrences/{recurrence_id}`
+  - `end_recurrence` -> `POST /v1/recurrences/{recurrence_id}/end`
   - `create_movement` -> `POST /v1/movements`
   - `get_monthly_summary` -> `GET /v1/months/{year}/{month}/summary`
   - `get_monthly_report` -> `GET /v1/months/{year}/{month}/report`
@@ -195,6 +201,151 @@ Create one monthly recurrence in active status.
   - month filters inconsistent
 - `422 DOMAIN_INVARIANT_VIOLATION`
   - recurrence business rules violated
+
+## Tool `list_recurrences`
+
+### Purpose
+
+List recurrence rules with optional lifecycle/month filters.
+
+### Input contract
+
+- Optional:
+  - `status` (`"active"`, `"paused"`, `"ended"`)
+  - `year` (int, 2000..2100)
+  - `month` (int, 1..12)
+  - `limit` (int, 1..200, default `50`)
+  - `offset` (int, >= 0, default `0`)
+
+### Domain rules
+
+- `year` and `month` must be provided together.
+- When `year/month` are sent, filtering uses the competence month (`YYYY-MM-01`).
+
+### Output contract (`RecurrenceListResponse`)
+
+- `items`: list of `RecurrenceResponse`
+- `total`: total records before pagination
+- `limit`: applied page size
+- `offset`: applied offset
+
+### Example tool call
+
+```json
+{
+  "tool": "list_recurrences",
+  "arguments": {
+    "status": "active",
+    "year": 2026,
+    "month": 4,
+    "limit": 20,
+    "offset": 0
+  }
+}
+```
+
+### Common mistakes
+
+- Sending only `year` or only `month`.
+- Using `limit` above `200`.
+
+## Tool `edit_recurrence`
+
+### Purpose
+
+Partially update an existing recurrence rule.
+
+### Input contract
+
+- Required:
+  - `recurrence_id` (UUID string)
+  - `requested_by_participant_id` (string)
+- Optional (at least one):
+  - `description` (string, 1..280)
+  - `amount` (string decimal, regex `^[0-9]+\.[0-9]{2}$`)
+  - `payer_participant_id` (string)
+  - `split_config` (object)
+  - `reference_day` (int, 1..31)
+  - `start_competence_month` (string `YYYY-MM`)
+  - `end_competence_month` (string `YYYY-MM`)
+  - `clear_end_competence_month` (bool, optional) for explicitly clearing end month
+
+### Domain rules
+
+- Use `clear_end_competence_month=true` to send `end_competence_month=null`.
+- Do not send `end_competence_month` together with `clear_end_competence_month=true`.
+- API applies last-write-wins semantics.
+
+### Output contract
+
+- Returns one updated `RecurrenceResponse`.
+
+### Example tool call
+
+```json
+{
+  "tool": "edit_recurrence",
+  "arguments": {
+    "recurrence_id": "fca2f2ee-2ca8-45f4-a5f4-4cf0082a4f91",
+    "requested_by_participant_id": "elias",
+    "amount": "1750.00",
+    "reference_day": 8
+  }
+}
+```
+
+### Error matrix
+
+- `400 INVALID_REQUEST`
+  - invalid payload
+  - no updatable field provided
+- `404 RECURRENCE_NOT_FOUND`
+  - recurrence does not exist
+- `422 DOMAIN_INVARIANT_VIOLATION`
+  - recurrence business rules violated
+
+## Tool `end_recurrence`
+
+### Purpose
+
+Logically end a recurrence (status transition), without hard deletion.
+
+### Input contract
+
+- Required:
+  - `recurrence_id` (UUID string)
+  - `requested_by_participant_id` (string)
+- Optional:
+  - `end_competence_month` (string `YYYY-MM`)
+
+### Domain rules
+
+- This operation maps to `POST /v1/recurrences/{recurrence_id}/end`.
+- It ends lifecycle generation for the rule instead of deleting history.
+
+### Output contract
+
+- Returns one updated `RecurrenceResponse` with `status="ended"`.
+
+### Example tool call
+
+```json
+{
+  "tool": "end_recurrence",
+  "arguments": {
+    "recurrence_id": "fca2f2ee-2ca8-45f4-a5f4-4cf0082a4f91",
+    "requested_by_participant_id": "elias",
+    "end_competence_month": "2026-09"
+  }
+}
+```
+
+### Error matrix
+
+- `404 RECURRENCE_NOT_FOUND`
+  - recurrence does not exist
+- `422 DOMAIN_INVARIANT_VIOLATION`
+  - invalid state transition
 
 ## Tool `create_movement`
 

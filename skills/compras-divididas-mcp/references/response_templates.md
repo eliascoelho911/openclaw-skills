@@ -101,6 +101,75 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 ➡️ Acao recomendada: {{suggested_action}}
 ```
 
+## `list_recurrences`
+
+### Sucesso
+
+```text
+🗂️ Recorrencias encontradas (total: {{total}}, exibindo: {{shown}}):
+{{items_bulleted}}
+✅ Consulta concluida.
+```
+
+### Sem resultados
+
+```text
+🔎 Nenhuma recorrencia encontrada com os filtros informados.
+```
+
+### Erro
+
+```text
+❌ Falha ao listar recorrencias.
+- Codigo: {{code}}
+- Mensagem: {{message}}
+➡️ Revise filtros de status/year/month e tente novamente.
+```
+
+## `edit_recurrence`
+
+### Sucesso
+
+```text
+✏️ Recorrencia atualizada com sucesso!
+- ID: {{id}}
+- Descricao: {{description}}
+- Valor: R$ {{amount}}
+- Dia de referencia: {{reference_day}}
+- Status: {{status}}
+📆 Vigencia: {{start_competence_month}} ate {{end_competence_month_or_dash}}
+```
+
+### Erro
+
+```text
+❌ Nao foi possivel atualizar a recorrencia.
+- Codigo: {{code}}
+- Mensagem: {{message}}
+➡️ Acao recomendada: {{suggested_action}}
+```
+
+## `end_recurrence`
+
+### Sucesso
+
+```text
+🛑 Recorrencia encerrada com sucesso.
+- ID: {{id}}
+- Status: {{status}}
+- Fim efetivo: {{end_competence_month_or_dash}}
+✅ Nenhum novo lancamento sera gerado para esta regra apos o encerramento.
+```
+
+### Erro
+
+```text
+❌ Nao foi possivel encerrar a recorrencia.
+- Codigo: {{code}}
+- Mensagem: {{message}}
+➡️ Acao recomendada: {{suggested_action}}
+```
+
 ## `get_monthly_summary`
 
 ### Sucesso
@@ -162,3 +231,8 @@ Use estes templates imediatamente apos cada chamada de ferramenta MCP.
 - `recurrence_kind` e `installments`:
   - quando `end_competence_month` estiver preenchido: `Parcelada` e numero de meses entre inicio/fim (inclusivo)
   - quando `end_competence_month` vier `null`: `Fixa` e `Ilimitada`
+- `items_bulleted` para `list_recurrences`: maximo de 5 itens no formato `- {id} | {status} | R$ {amount} | dia {reference_day} | {description}`
+- `status` para recorrencias:
+  - `active` -> `Ativa`
+  - `paused` -> `Pausada`
+  - `ended` -> `Encerrada`

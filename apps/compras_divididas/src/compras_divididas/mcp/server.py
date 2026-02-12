@@ -13,6 +13,7 @@ from compras_divididas.core.settings import get_settings
 
 MovementKind = Literal["purchase", "refund"]
 MovementFilterKind = Literal["purchase", "refund"]
+RecurrenceStatusFilter = Literal["active", "paused", "ended"]
 ParamValue = str | int | float | bool | None
 ParamsMapping = Mapping[str, ParamValue]
 
@@ -184,6 +185,98 @@ def create_mcp_server(
         return await api_requester.request(
             "POST",
             "/v1/recurrences",
+            json_body=payload,
+        )
+
+    @mcp.tool
+    async def list_recurrences(
+        status: RecurrenceStatusFilter | None = None,
+        year: int | None = None,
+        month: int | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> object:
+        """List recurrences with optional status/month filters."""
+
+        if (year is None) != (month is None):
+            raise ValueError("year and month filters must be provided together.")
+
+        params: dict[str, ParamValue] = {
+            "limit": limit,
+            "offset": offset,
+        }
+        if status is not None:
+            params["status"] = status
+        if year is not None:
+            params["year"] = year
+            params["month"] = month
+
+        return await api_requester.request("GET", "/v1/recurrences", params=params)
+
+    @mcp.tool
+    async def edit_recurrence(
+        recurrence_id: str,
+        requested_by_participant_id: str,
+        description: str | None = None,
+        amount: str | None = None,
+        payer_participant_id: str | None = None,
+        split_config: dict[str, Any] | None = None,
+        reference_day: int | None = None,
+        start_competence_month: str | None = None,
+        end_competence_month: str | None = None,
+        clear_end_competence_month: bool = False,
+    ) -> object:
+        """Edit one recurrence using partial updates."""
+
+        if clear_end_competence_month and end_competence_month is not None:
+            raise ValueError(
+                "end_competence_month cannot be provided when "
+                "clear_end_competence_month is true."
+            )
+
+        payload: dict[str, object] = {
+            "requested_by_participant_id": requested_by_participant_id,
+        }
+        if description is not None:
+            payload["description"] = description
+        if amount is not None:
+            payload["amount"] = amount
+        if payer_participant_id is not None:
+            payload["payer_participant_id"] = payer_participant_id
+        if split_config is not None:
+            payload["split_config"] = split_config
+        if reference_day is not None:
+            payload["reference_day"] = reference_day
+        if start_competence_month is not None:
+            payload["start_competence_month"] = start_competence_month
+        if end_competence_month is not None:
+            payload["end_competence_month"] = end_competence_month
+        if clear_end_competence_month:
+            payload["end_competence_month"] = None
+
+        return await api_requester.request(
+            "PATCH",
+            f"/v1/recurrences/{recurrence_id}",
+            json_body=payload,
+        )
+
+    @mcp.tool
+    async def end_recurrence(
+        recurrence_id: str,
+        requested_by_participant_id: str,
+        end_competence_month: str | None = None,
+    ) -> object:
+        """Logically end one recurrence without hard deletion."""
+
+        payload: dict[str, object] = {
+            "requested_by_participant_id": requested_by_participant_id,
+        }
+        if end_competence_month is not None:
+            payload["end_competence_month"] = end_competence_month
+
+        return await api_requester.request(
+            "POST",
+            f"/v1/recurrences/{recurrence_id}/end",
             json_body=payload,
         )
 

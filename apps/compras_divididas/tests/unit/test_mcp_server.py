@@ -57,10 +57,13 @@ def test_create_mcp_server_registers_expected_tools() -> None:
     assert tool_names == [
         "create_movement",
         "create_recurrence",
+        "edit_recurrence",
+        "end_recurrence",
         "get_monthly_report",
         "get_monthly_summary",
         "list_movements",
         "list_participants",
+        "list_recurrences",
     ]
 
 
@@ -169,6 +172,124 @@ def test_create_recurrence_tool_sends_expected_payload() -> None:
             "reference_day": 5,
             "start_competence_month": "2026-03",
             "end_competence_month": "2026-12",
+        },
+    }
+
+
+def test_list_recurrences_tool_sends_expected_filters() -> None:
+    async def scenario() -> dict[str, object]:
+        fake_requester = FakeRequester(
+            responses={("GET", "/v1/recurrences"): {"items": [], "total": 0}}
+        )
+        server = create_mcp_server(
+            api_base_url="http://example.test",
+            timeout_seconds=1,
+            requester=fake_requester,
+        )
+        async with Client(server) as client:
+            await client.call_tool(
+                "list_recurrences",
+                {
+                    "status": "active",
+                    "year": 2026,
+                    "month": 4,
+                    "limit": 10,
+                    "offset": 20,
+                },
+            )
+        return fake_requester.calls[0]
+
+    recorded_call = asyncio.run(scenario())
+
+    assert recorded_call == {
+        "method": "GET",
+        "path": "/v1/recurrences",
+        "params": {
+            "limit": 10,
+            "offset": 20,
+            "status": "active",
+            "year": 2026,
+            "month": 4,
+        },
+        "json_body": None,
+    }
+
+
+def test_edit_recurrence_tool_sends_expected_payload() -> None:
+    async def scenario() -> dict[str, object]:
+        fake_requester = FakeRequester(
+            responses={
+                ("PATCH", "/v1/recurrences/rec-123"): {"id": "rec-123", "ok": True}
+            }
+        )
+        server = create_mcp_server(
+            api_base_url="http://example.test",
+            timeout_seconds=1,
+            requester=fake_requester,
+        )
+        async with Client(server) as client:
+            await client.call_tool(
+                "edit_recurrence",
+                {
+                    "recurrence_id": "rec-123",
+                    "requested_by_participant_id": "elias",
+                    "description": "Aluguel atualizado",
+                    "amount": "1700.00",
+                    "clear_end_competence_month": True,
+                },
+            )
+        return fake_requester.calls[0]
+
+    recorded_call = asyncio.run(scenario())
+
+    assert recorded_call == {
+        "method": "PATCH",
+        "path": "/v1/recurrences/rec-123",
+        "params": None,
+        "json_body": {
+            "requested_by_participant_id": "elias",
+            "description": "Aluguel atualizado",
+            "amount": "1700.00",
+            "end_competence_month": None,
+        },
+    }
+
+
+def test_end_recurrence_tool_sends_expected_payload() -> None:
+    async def scenario() -> dict[str, object]:
+        fake_requester = FakeRequester(
+            responses={
+                ("POST", "/v1/recurrences/rec-123/end"): {
+                    "id": "rec-123",
+                    "status": "ended",
+                }
+            }
+        )
+        server = create_mcp_server(
+            api_base_url="http://example.test",
+            timeout_seconds=1,
+            requester=fake_requester,
+        )
+        async with Client(server) as client:
+            await client.call_tool(
+                "end_recurrence",
+                {
+                    "recurrence_id": "rec-123",
+                    "requested_by_participant_id": "elias",
+                    "end_competence_month": "2026-06",
+                },
+            )
+        return fake_requester.calls[0]
+
+    recorded_call = asyncio.run(scenario())
+
+    assert recorded_call == {
+        "method": "POST",
+        "path": "/v1/recurrences/rec-123/end",
+        "params": None,
+        "json_body": {
+            "requested_by_participant_id": "elias",
+            "end_competence_month": "2026-06",
         },
     }
 

@@ -25,6 +25,16 @@ def _type_label(value: str) -> str:
     return value
 
 
+def _recurrence_status_label(value: str) -> str:
+    if value == "active":
+        return "Ativa"
+    if value == "paused":
+        return "Pausada"
+    if value == "ended":
+        return "Encerrada"
+    return value
+
+
 def _compute_installments(
     start_competence_month: str,
     end_competence_month: str,
@@ -95,6 +105,7 @@ def _suggested_action(code: str) -> str:
             "Ajuste o valor do estorno para nao exceder o total da compra."
         ),
         "INVALID_REQUEST": "Revise campos obrigatorios e formato dos valores.",
+        "RECURRENCE_NOT_FOUND": "Confirme o recurrence_id e tente novamente.",
     }
     return mapping.get(code, "Revise os parametros e tente novamente.")
 
@@ -233,6 +244,96 @@ def render_create_recurrence(status: str, data: dict[str, Any]) -> str:
     )
 
 
+def render_list_recurrences(status: str, data: dict[str, Any]) -> str:
+    if status == "error":
+        code, message = _extract_error(data)
+        return (
+            "❌ Falha ao listar recorrencias.\n"
+            f"- Codigo: {code}\n"
+            f"- Mensagem: {message}\n"
+            "➡️ Revise filtros de status/year/month e tente novamente."
+        )
+
+    items = data.get("items")
+    if not isinstance(items, list) or len(items) == 0 or status == "empty":
+        return "🔎 Nenhuma recorrencia encontrada com os filtros informados."
+
+    total = _get(data, "total", str(len(items)))
+    shown = str(min(len(items), 5))
+
+    bullet_lines: list[str] = []
+    for item in items[:5]:
+        if isinstance(item, dict):
+            recurrence_id = _get(item, "id")
+            recurrence_status = _recurrence_status_label(_get(item, "status"))
+            amount = _get(item, "amount")
+            reference_day = _get(item, "reference_day")
+            description = _get(item, "description")
+            bullet_lines.append(
+                f"- {recurrence_id} | {recurrence_status}"
+                f" | R$ {amount} | dia {reference_day} | {description}"
+            )
+    if len(items) > 5:
+        bullet_lines.append("...")
+
+    header = f"🗂️ Recorrencias encontradas (total: {total}, exibindo: {shown}):"
+    return f"{header}\n" + "\n".join(bullet_lines) + "\n✅ Consulta concluida."
+
+
+def render_edit_recurrence(status: str, data: dict[str, Any]) -> str:
+    if status == "error":
+        code, message = _extract_error(data)
+        action = _suggested_action(code)
+        return (
+            "❌ Nao foi possivel atualizar a recorrencia.\n"
+            f"- Codigo: {code}\n"
+            f"- Mensagem: {message}\n"
+            f"➡️ Acao recomendada: {action}"
+        )
+
+    recurrence_id = _get(data, "id")
+    description = _get(data, "description")
+    amount = _get(data, "amount")
+    reference_day = _get(data, "reference_day")
+    recurrence_status = _recurrence_status_label(_get(data, "status"))
+    start_competence_month = _get(data, "start_competence_month")
+    end_competence_month = _get(data, "end_competence_month", "-")
+
+    return (
+        "✏️ Recorrencia atualizada com sucesso!\n"
+        f"- ID: {recurrence_id}\n"
+        f"- Descricao: {description}\n"
+        f"- Valor: R$ {amount}\n"
+        f"- Dia de referencia: {reference_day}\n"
+        f"- Status: {recurrence_status}\n"
+        f"📆 Vigencia: {start_competence_month} ate {end_competence_month}"
+    )
+
+
+def render_end_recurrence(status: str, data: dict[str, Any]) -> str:
+    if status == "error":
+        code, message = _extract_error(data)
+        action = _suggested_action(code)
+        return (
+            "❌ Nao foi possivel encerrar a recorrencia.\n"
+            f"- Codigo: {code}\n"
+            f"- Mensagem: {message}\n"
+            f"➡️ Acao recomendada: {action}"
+        )
+
+    recurrence_id = _get(data, "id")
+    recurrence_status = _recurrence_status_label(_get(data, "status"))
+    end_competence_month = _get(data, "end_competence_month", "-")
+
+    return (
+        "🛑 Recorrencia encerrada com sucesso.\n"
+        f"- ID: {recurrence_id}\n"
+        f"- Status: {recurrence_status}\n"
+        f"- Fim efetivo: {end_competence_month}\n"
+        "✅ Nenhum novo lancamento sera gerado para esta regra apos o encerramento."
+    )
+
+
 def _monthly_common(emoji: str, title: str, data: dict[str, Any], footer: str) -> str:
     competence_month = _get(data, "competence_month")
     total_gross = _get(data, "total_gross")
@@ -310,6 +411,12 @@ def render(tool: str, status: str, data: dict[str, Any]) -> str:
         return render_create_movement(status, data)
     if tool == "create_recurrence":
         return render_create_recurrence(status, data)
+    if tool == "list_recurrences":
+        return render_list_recurrences(status, data)
+    if tool == "edit_recurrence":
+        return render_edit_recurrence(status, data)
+    if tool == "end_recurrence":
+        return render_end_recurrence(status, data)
     if tool == "get_monthly_summary":
         return render_get_monthly_summary(status, data)
     if tool == "get_monthly_report":

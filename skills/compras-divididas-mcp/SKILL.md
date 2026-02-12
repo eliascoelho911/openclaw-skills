@@ -1,6 +1,6 @@
 ---
 name: compras-divididas-mcp
-description: Operate the compras_divididas MCP/API to register recurring transactions, purchases and refunds, search movements with monthly filters, and fetch monthly summary/report reconciliation between two participants. Use when the request involves the tools list_participants, create_recurrence, list_movements, create_movement, get_monthly_summary, or get_monthly_report, including WhatsApp ingestion, external_id deduplication, and API error diagnosis.
+description: Operate the compras_divididas MCP/API to register and manage recurrences, purchases and refunds, search movements and recurrences with monthly filters, and fetch monthly summary/report reconciliation between two participants. Use when the request involves the tools list_participants, create_recurrence, list_recurrences, edit_recurrence, end_recurrence, list_movements, create_movement, get_monthly_summary, or get_monthly_report, including WhatsApp ingestion, external_id deduplication, and API error diagnosis.
 ---
 
 # Compras Divididas MCP
@@ -12,10 +12,13 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 1. Validate connectivity by calling `list_participants` at the start of the session.
 2. Map the returned `participant_id` values and reuse those exact IDs in all other tools.
 3. Select the right tool for the user's intent:
-   - Register a recurrence: `create_recurrence`
-   - Register a purchase or refund: `create_movement`
-   - Find a purchase for a refund: `list_movements`
-   - Check the month partials: `get_monthly_summary` (`auto_generate` optional)
+    - Register a recurrence: `create_recurrence`
+    - List recurrence lifecycle/status: `list_recurrences`
+    - Edit recurrence settings: `edit_recurrence`
+    - End a recurrence logically: `end_recurrence`
+    - Register a purchase or refund: `create_movement`
+    - Find a purchase for a refund: `list_movements`
+    - Check the month partials: `get_monthly_summary` (`auto_generate` optional)
    - Get the on-demand consolidated report: `get_monthly_report` (`auto_generate` optional)
 4. Validate the result using canonical fields (`id`, `competence_month`, `total_net`, `transfer`).
 5. Handle failures using the playbook in `references/api_reference.md`.
@@ -44,6 +47,13 @@ Use this skill to operate the monthly reconciliation flow via the compras_dividi
 2. Call `create_recurrence` with `description`, `amount`, `payer_participant_id`, `requested_by_participant_id`, `split_config`, `reference_day`, and `start_competence_month`.
 3. Optionally include `end_competence_month` for fixed-duration recurrences.
 4. Confirm `status=active` and keep the returned recurrence `id` for future lifecycle operations.
+
+### Manage recurrence lifecycle
+
+1. Call `list_recurrences` with optional filters (`status`, `year`, `month`, `limit`, `offset`) to locate target rules.
+2. Call `edit_recurrence` to update fields (for example `amount`, `description`, `reference_day`).
+3. Use `clear_end_competence_month=true` in `edit_recurrence` when you need to remove an existing end month.
+4. Call `end_recurrence` to end a recurrence logically (status transition to `ended`), optionally passing `end_competence_month`.
 
 ### Register a refund without a `purchase_id`
 
